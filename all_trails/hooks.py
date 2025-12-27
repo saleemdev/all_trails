@@ -171,6 +171,20 @@ app_license = "mit"
 
 # before_tests = "all_trails.install.before_tests"
 
+# Build hooks for frontend assets
+# --------------------------------
+build_hooks = {
+	"before_build": "all_trails.build.before_build",
+	"after_build": "all_trails.build.after_build"
+}
+
+# Migration hooks
+# ---------------
+# Run frontend build after migrations to ensure assets are always up-to-date
+after_migrate = [
+	"all_trails.build.run_frontend_build"
+]
+
 # Overriding Methods
 # ------------------------------
 #

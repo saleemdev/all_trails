@@ -1,0 +1,159 @@
+{
+  "_blogStore-Co1XRrY2.js": {
+    "file": "assets/blogStore-Co1XRrY2.js",
+    "name": "blogStore",
+    "imports": [
+      "index.html"
+    ]
+  },
+  "_bookingsStore-BoqCQGy3.js": {
+    "file": "assets/bookingsStore-BoqCQGy3.js",
+    "name": "bookingsStore",
+    "imports": [
+      "index.html"
+    ]
+  },
+  "_trailsStore-BXHEo1nS.js": {
+    "file": "assets/trailsStore-BXHEo1nS.js",
+    "name": "trailsStore",
+    "imports": [
+      "index.html"
+    ]
+  },
+  "index.html": {
+    "file": "assets/index-HRiodYK0.js",
+    "name": "index",
+    "src": "index.html",
+    "isEntry": true,
+    "dynamicImports": [
+      "src/pages/Home.vue",
+      "src/pages/trails/Browse.vue",
+      "src/pages/trails/Detail.vue",
+      "src/pages/bookings/List.vue",
+      "src/pages/bookings/Detail.vue",
+      "src/pages/Profile.vue",
+      "src/pages/blog/List.vue",
+      "src/pages/blog/Detail.vue",
+      "src/pages/blog/GalleryDetail.vue"
+    ],
+    "css": [
+      "assets/index-DIZCIy9e.css"
+    ]
+  },
+  "src/pages/Home.vue": {
+    "file": "assets/Home-BeRn91OS.js",
+    "name": "Home",
+    "src": "src/pages/Home.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html"
+    ],
+    "css": [
+      "assets/Home-uWerZ0Or.css"
+    ]
+  },
+  "src/pages/Profile.vue": {
+    "file": "assets/Profile-WQzoxQgU.js",
+    "name": "Profile",
+    "src": "src/pages/Profile.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_bookingsStore-BoqCQGy3.js"
+    ],
+    "css": [
+      "assets/Profile-Ca1nTZCU.css"
+    ]
+  },
+  "src/pages/blog/Detail.vue": {
+    "file": "assets/Detail-DBzsMoBC.js",
+    "name": "Detail",
+    "src": "src/pages/blog/Detail.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_blogStore-Co1XRrY2.js"
+    ],
+    "css": [
+      "assets/Detail-BMyhkTJG.css"
+    ]
+  },
+  "src/pages/blog/GalleryDetail.vue": {
+    "file": "assets/GalleryDetail-DlxXIl_a.js",
+    "name": "GalleryDetail",
+    "src": "src/pages/blog/GalleryDetail.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_blogStore-Co1XRrY2.js"
+    ],
+    "css": [
+      "assets/GalleryDetail-9N-VY1tp.css"
+    ]
+  },
+  "src/pages/blog/List.vue": {
+    "file": "assets/List-Dr6OiwCx.js",
+    "name": "List",
+    "src": "src/pages/blog/List.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_blogStore-Co1XRrY2.js"
+    ],
+    "css": [
+      "assets/List-BzxGS4Eq.css"
+    ]
+  },
+  "src/pages/bookings/Detail.vue": {
+    "file": "assets/Detail-DamK36p7.js",
+    "name": "Detail",
+    "src": "src/pages/bookings/Detail.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_bookingsStore-BoqCQGy3.js"
+    ],
+    "css": [
+      "assets/Detail-DTiRQ9P2.css"
+    ]
+  },
+  "src/pages/bookings/List.vue": {
+    "file": "assets/List-BFUourYh.js",
+    "name": "List",
+    "src": "src/pages/bookings/List.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_bookingsStore-BoqCQGy3.js"
+    ],
+    "css": [
+      "assets/List-DD2rT7ht.css"
+    ]
+  },
+  "src/pages/trails/Browse.vue": {
+    "file": "assets/Browse-oUYQsvhr.js",
+    "name": "Browse",
+    "src": "src/pages/trails/Browse.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_trailsStore-BXHEo1nS.js"
+    ],
+    "css": [
+      "assets/Browse-CBUQN8oA.css"
+    ]
+  },
+  "src/pages/trails/Detail.vue": {
+    "file": "assets/Detail-tansaR3v.js",
+    "name": "Detail",
+    "src": "src/pages/trails/Detail.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_trailsStore-BXHEo1nS.js"
+    ],
+    "css": [
+      "assets/Detail-DgwreGVK.css"
+    ]
+  }
+}
