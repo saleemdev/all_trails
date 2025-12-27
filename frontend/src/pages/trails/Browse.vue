@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { useTrailsStore } from '../../stores/trailsStore'
 import TrailCard from '../../components/features/trails/TrailCard.vue'
 import TrailCalendar from '../../components/features/trails/TrailCalendar.vue'
+import TrailTable from '../../components/features/trails/TrailTable.vue'
+import TrailMap from '../../components/features/trails/TrailMap.vue'
 import type { Trail } from '../../types/index'
 
 const router = useRouter()
@@ -14,7 +16,7 @@ const isLoading = computed(() => trailsStore.isLoading)
 const error = computed(() => trailsStore.error)
 const filters = computed(() => trailsStore.filters)
 
-const viewMode = ref<'grid' | 'calendar'>('grid')
+const viewMode = ref<'grid' | 'calendar' | 'table' | 'map'>('table')
 const searchQuery = ref(filters.value.search || '')
 
 onMounted(() => {
@@ -86,6 +88,8 @@ const difficultyLevels = [
                 @input="updateSearch"
                 placeholder="Search by name or location..."
                 class="w-full pl-12 pr-4 py-3.5 text-base border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all outline-none"
+                aria-label="Search trails by name or location"
+                autocomplete="off"
               />
             </div>
           </div>
@@ -99,13 +103,15 @@ const difficultyLevels = [
                 :key="level.value"
                 @click="updateDifficulty(level.value)"
                 :class="[
-                  'flex-1 px-3 py-3.5 rounded-xl font-bold text-sm transition-all border-2',
+                  'flex-1 px-3 py-3.5 rounded-xl font-bold text-sm transition-all border-2 focus:outline-2 focus:outline-emerald-500 focus:outline-offset-2',
                   filters.difficulty_level === level.value || (!filters.difficulty_level && level.value === '')
                     ? 'bg-emerald-100 border-emerald-500 text-emerald-900'
                     : 'bg-white border-gray-200 text-gray-600 hover:border-emerald-300 hover:bg-emerald-50'
                 ]"
+                :aria-label="`Filter by ${level.label || 'all'} difficulty`"
+                :aria-pressed="filters.difficulty_level === level.value || (!filters.difficulty_level && level.value === '')"
               >
-                <span class="block text-lg mb-0.5">{{ level.emoji }}</span>
+                <span class="block text-lg mb-0.5" aria-hidden="true">{{ level.emoji }}</span>
                 <span class="hidden sm:block text-xs">{{ level.label }}</span>
               </button>
             </div>
@@ -114,15 +120,17 @@ const difficultyLevels = [
           <!-- View Toggle & Actions -->
           <div class="lg:col-span-3 flex gap-2">
             <!-- View Mode Toggle -->
-            <div class="flex-1 bg-gray-100 rounded-xl p-1 flex">
+            <div class="flex-1 bg-gray-100 rounded-xl p-1 flex flex-wrap sm:flex-nowrap">
               <button
                 @click="viewMode = 'grid'"
                 :class="[
-                  'flex-1 py-2.5 rounded-lg font-bold text-sm transition-all',
+                  'flex-1 py-2.5 rounded-lg font-bold text-sm transition-all focus:outline-2 focus:outline-emerald-500 focus:outline-offset-2',
                   viewMode === 'grid'
                     ? 'bg-white text-emerald-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 ]"
+                aria-label="Grid view"
+                :aria-pressed="viewMode === 'grid'"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -131,14 +139,46 @@ const difficultyLevels = [
               <button
                 @click="viewMode = 'calendar'"
                 :class="[
-                  'flex-1 py-2.5 rounded-lg font-bold text-sm transition-all',
+                  'flex-1 py-2.5 rounded-lg font-bold text-sm transition-all focus:outline-2 focus:outline-emerald-500 focus:outline-offset-2',
                   viewMode === 'calendar'
                     ? 'bg-white text-emerald-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 ]"
+                aria-label="Calendar view"
+                :aria-pressed="viewMode === 'calendar'"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <button
+                @click="viewMode = 'table'"
+                :class="[
+                  'flex-1 py-2.5 rounded-lg font-bold text-sm transition-all focus:outline-2 focus:outline-emerald-500 focus:outline-offset-2',
+                  viewMode === 'table'
+                    ? 'bg-white text-emerald-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                ]"
+                aria-label="Table view"
+                :aria-pressed="viewMode === 'table'"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <button
+                @click="viewMode = 'map'"
+                :class="[
+                  'flex-1 py-2.5 rounded-lg font-bold text-sm transition-all focus:outline-2 focus:outline-emerald-500 focus:outline-offset-2',
+                  viewMode === 'map'
+                    ? 'bg-white text-emerald-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                ]"
+                aria-label="Map view"
+                :aria-pressed="viewMode === 'map'"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                 </svg>
               </button>
             </div>
@@ -147,8 +187,9 @@ const difficultyLevels = [
             <button
               v-if="filters.search || filters.difficulty_level"
               @click="clearFilters"
-              class="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-all border-2 border-red-200"
+              class="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-all border-2 border-red-200 focus:outline-2 focus:outline-red-500 focus:outline-offset-2"
               title="Clear all filters"
+              aria-label="Clear all filters"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -207,13 +248,17 @@ const difficultyLevels = [
         </div>
 
         <!-- Trail Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           <TrailCard
             v-for="trail in trails"
             :key="trail.id"
             :trail="trail"
             @click="viewTrailDetail(trail.id)"
-            class="transform hover:scale-105 transition-transform cursor-pointer"
+            class="transform hover:scale-105 transition-transform cursor-pointer focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2"
+            :aria-label="`View details for ${trail.title}`"
+            tabindex="0"
+            @keydown.enter="viewTrailDetail(trail.id)"
+            @keydown.space.prevent="viewTrailDetail(trail.id)"
           />
         </div>
       </div>
@@ -221,6 +266,38 @@ const difficultyLevels = [
       <!-- Calendar View -->
       <div v-else-if="viewMode === 'calendar'">
         <TrailCalendar
+          :trails="trails"
+          @trail-click="(trail: Trail) => viewTrailDetail(trail.id)"
+        />
+      </div>
+
+      <!-- Table View -->
+      <div v-else-if="viewMode === 'table'">
+        <!-- Results Count -->
+        <div class="mb-8">
+          <h2 class="text-2xl font-black text-gray-900">
+            <span class="text-emerald-600">{{ trails.length }}</span>
+            {{ trails.length === 1 ? 'Trail' : 'Trails' }} Available
+          </h2>
+          <p class="text-gray-600 mt-1">Browse trails in table format</p>
+        </div>
+        <TrailTable
+          :trails="trails"
+          @trail-click="(trail: Trail) => viewTrailDetail(trail.id)"
+        />
+      </div>
+
+      <!-- Map View -->
+      <div v-else-if="viewMode === 'map'">
+        <!-- Results Count -->
+        <div class="mb-8">
+          <h2 class="text-2xl font-black text-gray-900">
+            <span class="text-emerald-600">{{ trails.length }}</span>
+            {{ trails.length === 1 ? 'Trail' : 'Trails' }} Available
+          </h2>
+          <p class="text-gray-600 mt-1">Explore trails on the map</p>
+        </div>
+        <TrailMap
           :trails="trails"
           @trail-click="(trail: Trail) => viewTrailDetail(trail.id)"
         />

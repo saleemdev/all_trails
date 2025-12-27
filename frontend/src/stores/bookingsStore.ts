@@ -43,11 +43,20 @@ export const useBookingsStore = defineStore('bookings', () => {
     }
   };
 
-  const createBooking = async (trailId: string, spotsBooked: number) => {
+  const createBooking = async (
+    trailId: string,
+    spotsBooked: number,
+    selectedActivities?: Array<{
+      activity_id: string;
+      activity_name: string;
+      quantity: number;
+      price: number;
+    }>
+  ) => {
     isLoading.value = true;
     error.value = null;
     try {
-      const newBooking = await apiService.createBooking(trailId, spotsBooked);
+      const newBooking = await apiService.createBooking(trailId, spotsBooked, selectedActivities);
       bookings.value.push(newBooking);
       return newBooking;
     } catch (err) {

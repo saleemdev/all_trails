@@ -1,3 +1,16 @@
+// Extra Activity Types
+export interface ExtraActivity {
+  id: string;
+  name: string;
+  description: string;
+  price_kshs: number;
+  icon?: string;
+  available: boolean;
+  requires_booking?: boolean; // Some activities might need separate booking
+  max_participants?: number;
+  available_spots?: number;
+}
+
 // Trail Types
 export interface Trail {
   id: string;
@@ -19,6 +32,8 @@ export interface Trail {
   featured_image?: string;
   route_geojson?: string;
   status: 'Active' | 'Cancelled' | 'Completed';
+  extra_activities?: ExtraActivity[]; // Optional extra activities
+  is_long_weekend?: boolean; // Special flag for long weekend availability
   created_at: string;
   updated_at: string;
 }
@@ -43,6 +58,12 @@ export interface TrailBooking {
   trail_title?: string;
   trail_location?: string;
   trail_scheduled_date?: string;
+  selected_activities?: Array<{
+    activity_id: string;
+    activity_name: string;
+    quantity: number;
+    price: number;
+  }>; // Selected extra activities
   created_at: string;
   updated_at: string;
 }

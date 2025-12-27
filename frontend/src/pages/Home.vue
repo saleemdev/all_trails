@@ -52,30 +52,37 @@ const handleImageError = (e: Event) => {
           <p class="text-xl md:text-3xl mb-12 text-white font-light max-w-3xl mx-auto leading-relaxed drop-shadow-lg">
             Explore breathtaking hiking trails across Kenya. Book guided experiences with expert trail leaders and create unforgettable memories.
           </p>
-          <div class="flex flex-col sm:flex-row gap-6 justify-center">
-            <button @click="exploreTrails" class="group px-12 py-5 bg-white text-emerald-900 hover:bg-amber-400 hover:text-white border-0 rounded-2xl text-xl font-black shadow-2xl transform hover:scale-105 transition-all flex items-center justify-center gap-3">
+          <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
+            <button
+              @click="exploreTrails"
+              class="group px-8 sm:px-12 py-4 sm:py-5 bg-white text-emerald-900 hover:bg-amber-400 hover:text-white border-0 rounded-2xl text-lg sm:text-xl font-black shadow-2xl transform hover:scale-105 transition-all flex items-center justify-center gap-3 focus:outline-2 focus:outline-white focus:outline-offset-4"
+              aria-label="Explore available trails"
+            >
               Explore Trails
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </button>
-            <button class="px-12 py-5 bg-transparent text-white border-white border-4 hover:bg-white hover:text-emerald-900 rounded-2xl text-xl font-black shadow-2xl transform hover:scale-105 transition-all">
+            <button
+              class="px-8 sm:px-12 py-4 sm:py-5 bg-transparent text-white border-white border-4 hover:bg-white hover:text-emerald-900 rounded-2xl text-lg sm:text-xl font-black shadow-2xl transform hover:scale-105 transition-all focus:outline-2 focus:outline-white focus:outline-offset-4"
+              aria-label="Learn more about Step Up Adventures"
+            >
               Learn More
             </button>
           </div>
 
-          <!-- Stats -->
-          <div class="grid grid-cols-3 gap-8 mt-20 max-w-3xl mx-auto">
-            <div class="text-center">
-              <div class="text-5xl font-black text-amber-400 mb-2">50+</div>
+          <!-- Stats with Better Mobile Layout -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mt-12 sm:mt-20 max-w-3xl mx-auto">
+            <div class="text-center" role="article" aria-label="50 plus trails available">
+              <div class="text-4xl sm:text-5xl font-black text-amber-400 mb-2">50+</div>
               <div class="text-white/80 text-sm uppercase tracking-wider">Trails</div>
             </div>
-            <div class="text-center">
-              <div class="text-5xl font-black text-amber-400 mb-2">1000+</div>
+            <div class="text-center" role="article" aria-label="1000 plus hikers">
+              <div class="text-4xl sm:text-5xl font-black text-amber-400 mb-2">1000+</div>
               <div class="text-white/80 text-sm uppercase tracking-wider">Hikers</div>
             </div>
-            <div class="text-center">
-              <div class="text-5xl font-black text-amber-400 mb-2">25+</div>
+            <div class="text-center" role="article" aria-label="25 plus guides">
+              <div class="text-4xl sm:text-5xl font-black text-amber-400 mb-2">25+</div>
               <div class="text-white/80 text-sm uppercase tracking-wider">Guides</div>
             </div>
           </div>
@@ -98,7 +105,7 @@ const handleImageError = (e: Event) => {
           <p class="text-xl text-gray-600 max-w-2xl mx-auto">Experience the best hiking adventures with our professional guides and carefully curated trails</p>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           <!-- Feature 1 -->
           <div class="text-center group hover:scale-105 transition-transform cursor-pointer">
             <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl flex items-center justify-center transform group-hover:rotate-6 transition-transform shadow-xl">
@@ -140,7 +147,11 @@ const handleImageError = (e: Event) => {
       <div class="max-w-4xl mx-auto text-center px-6">
         <h2 class="text-5xl font-black text-white mb-6">Ready for Adventure?</h2>
         <p class="text-xl text-white/90 mb-10">Join thousands of hikers exploring Kenya's most beautiful trails</p>
-        <button @click="exploreTrails" class="btn btn-lg bg-white text-emerald-900 hover:bg-amber-400 hover:text-white border-0 px-12 text-lg font-bold shadow-2xl transform hover:scale-105 transition-all">
+        <button
+          @click="exploreTrails"
+          class="btn btn-lg bg-white text-emerald-900 hover:bg-amber-400 hover:text-white border-0 px-8 sm:px-12 text-lg font-bold shadow-2xl transform hover:scale-105 transition-all focus:outline-2 focus:outline-white focus:outline-offset-4"
+          aria-label="Start exploring trails"
+        >
           Start Exploring
         </button>
       </div>

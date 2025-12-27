@@ -40,8 +40,13 @@ const formatPrice = (price: number) => {
 
 <template>
   <div
-    class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col cursor-pointer"
+    class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col cursor-pointer focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2"
     @click="$emit('click')"
+    role="article"
+    :aria-label="`Trail: ${trail.title} in ${trail.location}`"
+    tabindex="0"
+    @keydown.enter="$emit('click')"
+    @keydown.space.prevent="$emit('click')"
   >
     <!-- Card Image -->
     <div class="relative h-56 bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 overflow-hidden">
@@ -148,7 +153,11 @@ const formatPrice = (price: number) => {
         </div>
 
         <!-- View Button -->
-        <button class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-md group-hover:shadow-lg transform group-hover:scale-105">
+        <button
+          class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-md group-hover:shadow-lg transform group-hover:scale-105 focus:outline-2 focus:outline-emerald-500 focus:outline-offset-2"
+          :aria-label="`View details for ${trail.title}`"
+          @click.stop="$emit('click')"
+        >
           View Trail
         </button>
       </div>

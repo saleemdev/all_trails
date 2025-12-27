@@ -185,6 +185,13 @@ after_migrate = [
 	"all_trails.build.run_frontend_build"
 ]
 
+# Website Path Resolver
+# ---------------------
+# Custom path resolver to handle all /all-trails/* routes for Vue Router
+website_path_resolver = [
+	"all_trails.www.path_resolver.resolve_all_trails_path"
+]
+
 # Overriding Methods
 # ------------------------------
 #

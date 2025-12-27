@@ -14,8 +14,86 @@ class ApiService {
       baseURL: '/api/method/all_trails',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
+      withCredentials: true, // Enable cookies for session management
     });
+
+    // Request interceptor for CSRF token
+    this.axiosInstance.interceptors.request.use(
+      (config) => {
+        // SECURITY: Validate CSRF token exists before making request
+        if (!(window as any).csrf_token) {
+          console.warn('[SECURITY] CSRF token is missing or undefined. Request may be rejected by server.');
+        }
+
+        // Add CSRF token if available
+        if ((window as any).csrf_token) {
+          config.headers['X-Frappe-CSRF-Token'] = (window as any).csrf_token;
+        }
+
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // Response interceptor for error handling and session expiry
+    this.axiosInstance.interceptors.response.use(
+      (response) => {
+        // Frappe returns data in response.data.message for method calls
+        if (response.data && response.data.message !== undefined) {
+          return {
+            ...response,
+            data: response.data.message
+          };
+        }
+        return response;
+      },
+      (error) => {
+        // Handle common Frappe errors
+        if (error.response) {
+          const { status, data } = error.response;
+
+          switch (status) {
+            case 401:
+              // SECURITY: Unauthorized - session expired or invalid
+              console.error('[SECURITY] 401 Unauthorized - Session may have expired. User should re-authenticate.');
+              // Dispatch event for app to handle re-authentication
+              window.dispatchEvent(new CustomEvent('session-expired', { detail: { status: 401 } }));
+              break;
+            case 403:
+              // SECURITY: Forbidden - user lacks permissions
+              console.error('[SECURITY] 403 Forbidden - User lacks required permissions.');
+              window.dispatchEvent(new CustomEvent('permission-denied', { detail: { status: 403 } }));
+              break;
+            case 404:
+              // Not found
+              break;
+            case 500:
+              // Server error
+              break;
+            default:
+              // Handle error
+          }
+
+          // Return structured error
+          return Promise.reject({
+            status,
+            message: data?.message || error.message,
+            data: data
+          });
+        }
+
+        // Network or other errors
+        return Promise.reject({
+          status: 0,
+          message: error.message || 'Network error',
+          data: null
+        });
+      }
+    );
   }
 
   // ============ TRAILS ============
@@ -46,11 +124,24 @@ class ApiService {
 
   // ============ BOOKINGS ============
 
-  async createBooking(trailId: string, spotsBooked: number): Promise<TrailBooking> {
+  async createBooking(
+    trailId: string,
+    spotsBooked: number,
+    selectedActivities?: Array<{
+      activity_id: string;
+      activity_name: string;
+      quantity: number;
+      price: number;
+    }>
+  ): Promise<TrailBooking> {
     if (USE_MOCK_DATA) {
-      return this.mockCreateBooking(trailId, spotsBooked);
+      return this.mockCreateBooking(trailId, spotsBooked, selectedActivities);
     }
-    const response = await this.axiosInstance.post('/create_booking', { trail_id: trailId, spots_booked: spotsBooked });
+    const response = await this.axiosInstance.post('/create_booking', {
+      trail_id: trailId,
+      spots_booked: spotsBooked,
+      selected_activities: selectedActivities || []
+    });
     const booking = response.data.message || response.data;
     booking.id = booking.name || booking.id;
     return booking;
@@ -109,12 +200,63 @@ class ApiService {
 
   // ============ USER ============
 
-  async getCurrentUser(): Promise<User> {
-    if (USE_MOCK_DATA) {
-      return this.mockGetCurrentUser();
+  async getCurrentUser(): Promise<User | null> {
+    // Check if user has valid session cookies first
+    const cookies = document.cookie.split(';').reduce((acc: Record<string, string>, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {});
+
+    // If no session cookies (sid or user_id), user is not logged in
+    if (!cookies.sid && !cookies.user_id) {
+      return null;
     }
-    const response = await this.axiosInstance.get('/get_current_user');
-    return response.data.message || response.data;
+
+    // If Frappe session data is available in window, use it
+    if ((window as any).frappe?.session?.user && (window as any).frappe.session.user !== 'Guest') {
+      return {
+        name: (window as any).frappe.session.user,
+        email: (window as any).frappe.session.user,
+        full_name: (window as any).frappe.session.user_fullname || (window as any).frappe.session.user,
+        user_image: (window as any).frappe.session.user_image || null
+      };
+    }
+
+    // Try to fetch current user from Frappe API
+    try {
+      const response = await axios.get('/api/method/frappe.auth.get_logged_user', {
+        headers: {
+          'X-Frappe-CSRF-Token': (window as any).csrf_token || '',
+        },
+        withCredentials: true // Critical for cookie-based sessions
+      });
+
+      if (response.data && response.data.message && response.data.message !== 'Guest') {
+        const userName = response.data.message;
+        // Fetch full user details
+        const userResponse = await axios.get(`/api/resource/User/${userName}`, {
+          headers: {
+            'X-Frappe-CSRF-Token': (window as any).csrf_token || '',
+          },
+          withCredentials: true // Critical for cookie-based sessions
+        });
+
+        const userData = userResponse.data?.data || {};
+        return {
+          name: userName,
+          email: userData.email || userName,
+          full_name: userData.full_name || userName,
+          user_image: userData.user_image || null
+        };
+      } else {
+        // User is Guest, not authenticated
+        return null;
+      }
+    } catch (error) {
+      console.error('Failed to fetch user session:', error);
+      return null;
+    }
   }
 
   async getUserStats(): Promise<any> {
@@ -170,10 +312,29 @@ class ApiService {
     return trail;
   }
 
-  private mockCreateBooking(trailId: string, spotsBooked: number): TrailBooking {
+  private mockCreateBooking(
+    trailId: string,
+    spotsBooked: number,
+    selectedActivities?: Array<{
+      activity_id: string;
+      activity_name: string;
+      quantity: number;
+      price: number;
+    }>
+  ): TrailBooking {
     const trail = mockTrails.find(t => t.id === trailId);
     if (!trail) throw new Error(`Trail ${trailId} not found`);
     if (trail.available_spots < spotsBooked) throw new Error('Not enough spots available');
+
+    // Calculate base price
+    const basePrice = trail.price_kshs * spotsBooked;
+    
+    // Calculate activities price
+    const activitiesPrice = selectedActivities?.reduce((sum, activity) => {
+      return sum + (activity.price * activity.quantity);
+    }, 0) || 0;
+
+    const totalPrice = basePrice + activitiesPrice;
 
     const booking: TrailBooking = {
       id: `booking-${Date.now()}`,
@@ -182,12 +343,13 @@ class ApiService {
       booking_date: new Date().toISOString(),
       status: 'Pending',
       spots_booked: spotsBooked,
-      total_price: trail.price_kshs * spotsBooked,
+      total_price: totalPrice,
       payment_status: 'Pending',
       confirmation_code: `CONF-${Math.random().toString(36).substring(7).toUpperCase()}`,
       trail_title: trail.title,
       trail_location: trail.location,
       trail_scheduled_date: trail.scheduled_date,
+      selected_activities: selectedActivities || [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
