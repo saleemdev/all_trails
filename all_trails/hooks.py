@@ -1,5 +1,5 @@
 app_name = "all_trails"
-app_title = "All Trails"
+app_title = "Stepup Adventures"
 app_publisher = "Salim"
 app_description = "Hiking Management app"
 app_email = "dsmwaura@gmail.com"
@@ -15,7 +15,7 @@ app_license = "mit"
 # 	{
 # 		"name": "all_trails",
 # 		"logo": "/assets/all_trails/logo.png",
-# 		"title": "All Trails",
+# 		"title": "Stepup Adventures",
 # 		"route": "/all_trails",
 # 		"has_permission": "all_trails.api.permission.has_app_permission"
 # 	}
@@ -63,6 +63,9 @@ app_license = "mit"
 # role_home_page = {
 # 	"Role": "home_page"
 # }
+
+# Override signup form markup used on /login#signup without changing auth endpoints
+signup_form_template = "all_trails/templates/includes/signup/all_trails_signup.html"
 
 # Generators
 # ----------
@@ -144,6 +147,12 @@ app_license = "mit"
 # 		"on_trash": "method"
 # 	}
 # }
+
+doc_events = {
+	"User": {
+		"after_insert": "all_trails.services.member.on_user_after_insert",
+	}
+}
 
 # Scheduled Tasks
 # ---------------
@@ -267,4 +276,3 @@ website_path_resolver = [
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-

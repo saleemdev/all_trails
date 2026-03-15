@@ -1,0 +1,259 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2026-03-15 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "trail_details_tab",
+  "title",
+  "slug",
+  "status",
+  "published",
+  "column_break_details",
+  "difficulty_level",
+  "location",
+  "host",
+  "schedule_section",
+  "scheduled_date",
+  "start_time",
+  "end_time",
+  "column_break_schedule",
+  "distance_km",
+  "duration_hours",
+  "elevation_gain_m",
+  "capacity_section",
+  "max_capacity",
+  "available_spots",
+  "column_break_capacity",
+  "price_kshs",
+  "is_long_weekend",
+  "media_section",
+  "featured_image",
+  "route_geojson",
+  "description_section",
+  "description",
+  "activities_tab",
+  "activities",
+  "meta_tab",
+  "sort_order"
+ ],
+ "fields": [
+  {
+   "fieldname": "trail_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Trail Details"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "slug",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Slug",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Active\nCancelled\nCompleted"
+  },
+  {
+   "default": "1",
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Published"
+  },
+  {
+   "fieldname": "column_break_details",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "difficulty_level",
+   "fieldtype": "Select",
+   "label": "Difficulty Level",
+   "options": "Easy\nModerate\nHard\nExpert",
+   "reqd": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location",
+   "reqd": 1
+  },
+  {
+   "fieldname": "host",
+   "fieldtype": "Data",
+   "label": "Host"
+  },
+  {
+   "fieldname": "schedule_section",
+   "fieldtype": "Section Break",
+   "label": "Schedule"
+  },
+  {
+   "fieldname": "scheduled_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Scheduled Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "start_time",
+   "fieldtype": "Time",
+   "label": "Start Time"
+  },
+  {
+   "fieldname": "end_time",
+   "fieldtype": "Time",
+   "label": "End Time"
+  },
+  {
+   "fieldname": "column_break_schedule",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "distance_km",
+   "fieldtype": "Float",
+   "label": "Distance (KM)"
+  },
+  {
+   "fieldname": "duration_hours",
+   "fieldtype": "Float",
+   "label": "Duration (Hours)"
+  },
+  {
+   "fieldname": "elevation_gain_m",
+   "fieldtype": "Int",
+   "label": "Elevation Gain (M)"
+  },
+  {
+   "fieldname": "capacity_section",
+   "fieldtype": "Section Break",
+   "label": "Capacity and Pricing"
+  },
+  {
+   "fieldname": "max_capacity",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Max Capacity",
+   "reqd": 1
+  },
+  {
+   "fieldname": "available_spots",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Available Spots",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_capacity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "price_kshs",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Price (KES)",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_long_weekend",
+   "fieldtype": "Check",
+   "label": "Is Long Weekend"
+  },
+  {
+   "fieldname": "media_section",
+   "fieldtype": "Section Break",
+   "label": "Media"
+  },
+  {
+   "fieldname": "featured_image",
+   "fieldtype": "Attach Image",
+   "label": "Featured Image"
+  },
+  {
+   "fieldname": "route_geojson",
+   "fieldtype": "Long Text",
+   "label": "Route GeoJSON"
+  },
+  {
+   "fieldname": "description_section",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description",
+   "reqd": 1
+  },
+  {
+   "fieldname": "activities_tab",
+   "fieldtype": "Tab Break",
+   "label": "Activities"
+  },
+  {
+   "fieldname": "activities",
+   "fieldtype": "Table",
+   "label": "Trail Activities",
+   "options": "Trail Activity"
+  },
+  {
+   "fieldname": "meta_tab",
+   "fieldtype": "Tab Break",
+   "label": "Meta"
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Sort Order"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-15 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "All Trails",
+ "name": "Trail",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Trail Member"
+  },
+  {
+   "read": 1,
+   "role": "Guest"
+  }
+ ],
+ "sort_field": "scheduled_date",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "title"
+}

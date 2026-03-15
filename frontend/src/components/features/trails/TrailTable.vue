@@ -31,37 +31,37 @@ const formatDate = (dateString: string) => {
 
 const getDifficultyBadge = (difficulty: string) => {
   const colors: Record<string, string> = {
-    'Easy': 'bg-green-100 text-green-800 border-green-300',
-    'Moderate': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    'Hard': 'bg-orange-100 text-orange-800 border-orange-300',
-    'Expert': 'bg-red-100 text-red-800 border-red-300'
+    Easy: 'bg-green-100 text-green-800 border-green-300',
+    Moderate: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    Hard: 'bg-orange-100 text-orange-800 border-orange-300',
+    Expert: 'bg-red-100 text-red-800 border-red-300'
   }
   return colors[difficulty] || 'bg-gray-100 text-gray-800 border-gray-300'
 }
 
 const sortedTrails = computed(() => {
   if (!sortKey.value) return props.trails
-  
+
   const sorted = [...props.trails].sort((a, b) => {
     const aVal = a[sortKey.value as keyof Trail]
     const bVal = b[sortKey.value as keyof Trail]
-    
+
     if (aVal === undefined || aVal === null) return 1
     if (bVal === undefined || bVal === null) return -1
-    
+
     if (typeof aVal === 'string' && typeof bVal === 'string') {
-      return sortOrder.value === 'asc' 
+      return sortOrder.value === 'asc'
         ? aVal.localeCompare(bVal)
         : bVal.localeCompare(aVal)
     }
-    
+
     if (typeof aVal === 'number' && typeof bVal === 'number') {
       return sortOrder.value === 'asc' ? aVal - bVal : bVal - aVal
     }
-    
+
     return 0
   })
-  
+
   return sorted
 })
 
@@ -83,133 +83,64 @@ const getSortIcon = (key: keyof Trail) => {
 </script>
 
 <template>
-  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+  <div class="glass-panel-strong rounded-[2rem] overflow-hidden">
     <div class="overflow-x-auto">
       <table class="w-full">
-        <thead class="bg-gray-50 border-b-2 border-gray-200">
+        <thead class="surface-control border-b border-[color:var(--color-border-soft)]">
           <tr>
-            <th 
-              class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-              @click="handleSort('title')"
-            >
-              <div class="flex items-center gap-2">
-                Trail
-                <span class="text-gray-400">{{ getSortIcon('title') }}</span>
-              </div>
+            <th class="px-6 py-4 text-left text-xs font-bold tone-heading uppercase tracking-wider cursor-pointer hover:bg-[color:var(--color-surface-control-hover)] transition-colors" @click="handleSort('title')">
+              <div class="flex items-center gap-2">Trail <span class="tone-muted">{{ getSortIcon('title') }}</span></div>
             </th>
-            <th 
-              class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-              @click="handleSort('location')"
-            >
-              <div class="flex items-center gap-2">
-                Location
-                <span class="text-gray-400">{{ getSortIcon('location') }}</span>
-              </div>
+            <th class="px-6 py-4 text-left text-xs font-bold tone-heading uppercase tracking-wider cursor-pointer hover:bg-[color:var(--color-surface-control-hover)] transition-colors" @click="handleSort('location')">
+              <div class="flex items-center gap-2">Location <span class="tone-muted">{{ getSortIcon('location') }}</span></div>
             </th>
-            <th 
-              class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-              @click="handleSort('difficulty_level')"
-            >
-              <div class="flex items-center gap-2">
-                Difficulty
-                <span class="text-gray-400">{{ getSortIcon('difficulty_level') }}</span>
-              </div>
+            <th class="px-6 py-4 text-left text-xs font-bold tone-heading uppercase tracking-wider cursor-pointer hover:bg-[color:var(--color-surface-control-hover)] transition-colors" @click="handleSort('difficulty_level')">
+              <div class="flex items-center gap-2">Difficulty <span class="tone-muted">{{ getSortIcon('difficulty_level') }}</span></div>
             </th>
-            <th 
-              class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-              @click="handleSort('scheduled_date')"
-            >
-              <div class="flex items-center gap-2">
-                Date
-                <span class="text-gray-400">{{ getSortIcon('scheduled_date') }}</span>
-              </div>
+            <th class="px-6 py-4 text-left text-xs font-bold tone-heading uppercase tracking-wider cursor-pointer hover:bg-[color:var(--color-surface-control-hover)] transition-colors" @click="handleSort('scheduled_date')">
+              <div class="flex items-center gap-2">Date <span class="tone-muted">{{ getSortIcon('scheduled_date') }}</span></div>
             </th>
-            <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-              Time
+            <th class="px-6 py-4 text-left text-xs font-bold tone-heading uppercase tracking-wider">Time</th>
+            <th class="px-6 py-4 text-left text-xs font-bold tone-heading uppercase tracking-wider cursor-pointer hover:bg-[color:var(--color-surface-control-hover)] transition-colors" @click="handleSort('distance_km')">
+              <div class="flex items-center gap-2">Distance <span class="tone-muted">{{ getSortIcon('distance_km') }}</span></div>
             </th>
-            <th 
-              class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-              @click="handleSort('distance_km')"
-            >
-              <div class="flex items-center gap-2">
-                Distance
-                <span class="text-gray-400">{{ getSortIcon('distance_km') }}</span>
-              </div>
+            <th class="px-6 py-4 text-left text-xs font-bold tone-heading uppercase tracking-wider">Duration</th>
+            <th class="px-6 py-4 text-left text-xs font-bold tone-heading uppercase tracking-wider cursor-pointer hover:bg-[color:var(--color-surface-control-hover)] transition-colors" @click="handleSort('price_kshs')">
+              <div class="flex items-center gap-2">Price <span class="tone-muted">{{ getSortIcon('price_kshs') }}</span></div>
             </th>
-            <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-              Duration
-            </th>
-            <th 
-              class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-              @click="handleSort('price_kshs')"
-            >
-              <div class="flex items-center gap-2">
-                Price
-                <span class="text-gray-400">{{ getSortIcon('price_kshs') }}</span>
-              </div>
-            </th>
-            <th 
-              class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-              @click="handleSort('available_spots')"
-            >
-              <div class="flex items-center gap-2">
-                Availability
-                <span class="text-gray-400">{{ getSortIcon('available_spots') }}</span>
-              </div>
+            <th class="px-6 py-4 text-left text-xs font-bold tone-heading uppercase tracking-wider cursor-pointer hover:bg-[color:var(--color-surface-control-hover)] transition-colors" @click="handleSort('available_spots')">
+              <div class="flex items-center gap-2">Availability <span class="tone-muted">{{ getSortIcon('available_spots') }}</span></div>
             </th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody class="divide-y divide-slate-200/80">
           <tr
             v-for="trail in sortedTrails"
             :key="trail.id"
-            class="hover:bg-emerald-50 cursor-pointer transition-colors"
+            class="hover:bg-white/70 cursor-pointer transition-colors"
             @click="emit('trailClick', trail)"
           >
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="font-semibold text-gray-900 hover:text-emerald-700">
-                {{ trail.title }}
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-gray-700">📍 {{ trail.location }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span :class="['px-2 py-1 rounded-full text-xs font-semibold border', getDifficultyBadge(trail.difficulty_level)]">
-                {{ trail.difficulty_level }}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-gray-700">{{ formatDate(trail.scheduled_date) }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-gray-700">{{ trail.start_time }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-gray-700 font-medium">{{ trail.distance_km }} km</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-gray-700">{{ trail.duration_hours }}h</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="font-semibold text-emerald-700">{{ formatPrice(trail.price_kshs) }}</div>
-            </td>
+            <td class="px-6 py-4 whitespace-nowrap"><div class="font-semibold text-slate-900 trail-card-title">{{ trail.title }}</div></td>
+            <td class="px-6 py-4 whitespace-nowrap"><div class="text-slate-700">📍 {{ trail.location }}</div></td>
+            <td class="px-6 py-4 whitespace-nowrap"><span :class="['px-2 py-1 rounded-full text-xs font-semibold border', getDifficultyBadge(trail.difficulty_level)]">{{ trail.difficulty_level }}</span></td>
+            <td class="px-6 py-4 whitespace-nowrap"><div class="text-slate-700">{{ formatDate(trail.scheduled_date) }}</div></td>
+            <td class="px-6 py-4 whitespace-nowrap"><div class="text-slate-700">{{ trail.start_time }}</div></td>
+            <td class="px-6 py-4 whitespace-nowrap"><div class="text-slate-700 font-medium">{{ trail.distance_km }} km</div></td>
+            <td class="px-6 py-4 whitespace-nowrap"><div class="text-slate-700">{{ trail.duration_hours }}h</div></td>
+            <td class="px-6 py-4 whitespace-nowrap"><div class="font-semibold brand-text">{{ formatPrice(trail.price_kshs) }}</div></td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center gap-2">
-                <span :class="trail.available_spots > 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">
-                  {{ trail.available_spots }}
-                </span>
-                <span class="text-gray-500 text-sm">/ {{ trail.max_capacity }}</span>
+                <span :class="trail.available_spots > 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">{{ trail.available_spots }}</span>
+                <span class="text-slate-500 text-sm">/ {{ trail.max_capacity }}</span>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    
-    <!-- Empty State -->
+
     <div v-if="sortedTrails.length === 0" class="text-center py-16">
-      <p class="text-gray-500">No trails to display</p>
+      <p class="text-slate-500 mb-0">No trails to display</p>
     </div>
   </div>
 </template>

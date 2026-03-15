@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import type { Trail } from '../../../types'
+import { apiService } from '../../../services/api'
+import { isValidKenyanMpesaPhone, normalizeKenyanMpesaPhone } from '../../../utils/payments'
 
 const props = defineProps<{
   trail: Trail
@@ -22,6 +24,8 @@ const paymentMethod = ref<'mpesa' | 'card'>('mpesa')
 const paymentProcessing = ref(false)
 const paymentStatus = ref<'idle' | 'processing' | 'success' | 'failed'>('idle')
 const paymentMessage = ref('')
+const paymentId = ref('')
+let pollIntervalHandle: ReturnType<typeof setInterval> | null = null
 
 // Computed
 const totalPrice = computed(() => numPeople.value * (props.trail?.price_kshs || 0))
@@ -48,39 +52,42 @@ const formatPrice = (price: number) => {
 const initiateMpesaPayment = async () => {
   if (!isFormValid.value) return
 
+  const normalizedPhone = normalizeKenyanMpesaPhone(userPhone.value)
+  if (!isValidKenyanMpesaPhone(normalizedPhone)) {
+    paymentStatus.value = 'failed'
+    paymentMessage.value = 'Enter a valid MPESA number in the format 254712345678.'
+    return
+  }
+
   paymentProcessing.value = true
   paymentStatus.value = 'processing'
   paymentMessage.value = 'Initiating M-Pesa STK push...'
 
   try {
-    // Call backend API to initiate M-Pesa STK push
-    const response = await fetch('/api/method/all_trails.api.initiate_mpesa_stk_push', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Frappe-CSRF-Token': (window as any).csrf_token,
-      },
-      body: JSON.stringify({
-        phone_number: userPhone.value,
-        amount: totalPrice.value,
+    userPhone.value = normalizedPhone
+    const paymentReference = `trail-${props.trail.id}-${Date.now()}`
+    const result = await apiService.initiateMpesaPayment({
+      journey_type: 'Trail Booking',
+      reference_name: paymentReference,
+      reference_doctype: 'Trail Booking',
+      phone_number: normalizedPhone,
+      amount: totalPrice.value,
+      metadata: {
         trail_id: props.trail.id,
         user_name: userFullName.value,
         user_email: userEmail.value,
         spots_booked: numPeople.value,
-      }),
+      },
     })
 
-    const result = await response.json()
-
-    if (result.message?.success) {
+    if (result.success) {
+      paymentId.value = result.payment_id
       paymentStatus.value = 'processing'
       paymentMessage.value = 'Check your phone for the M-Pesa prompt. Enter your PIN to complete payment.'
-
-      // Poll for payment status
-      await pollPaymentStatus(result.message.checkout_request_id)
+      await pollPaymentStatus(result.payment_id)
     } else {
       paymentStatus.value = 'failed'
-      paymentMessage.value = result.message?.error || 'Failed to initiate payment. Please try again.'
+      paymentMessage.value = result.message || 'Failed to initiate payment. Please try again.'
     }
   } catch (error) {
     paymentStatus.value = 'failed'
@@ -91,28 +98,27 @@ const initiateMpesaPayment = async () => {
   }
 }
 
-const pollPaymentStatus = async (checkoutRequestId: string) => {
+const clearPollInterval = () => {
+  if (pollIntervalHandle) {
+    clearInterval(pollIntervalHandle)
+    pollIntervalHandle = null
+  }
+}
+
+const pollPaymentStatus = async (activePaymentId: string) => {
   // Poll for payment status (every 2 seconds for up to 2 minutes)
   const maxAttempts = 60
   let attempts = 0
 
-  const pollInterval = setInterval(async () => {
+  clearPollInterval()
+  pollIntervalHandle = setInterval(async () => {
     attempts++
 
     try {
-      const response = await fetch(
-        `/api/method/all_trails.api.check_mpesa_payment_status?checkout_request_id=${checkoutRequestId}`,
-        {
-          headers: {
-            'X-Frappe-CSRF-Token': (window as any).csrf_token,
-          },
-        }
-      )
+      const result = await apiService.getMpesaPaymentStatus(activePaymentId)
 
-      const result = await response.json()
-
-      if (result.message?.paid) {
-        clearInterval(pollInterval)
+      if (result.paid) {
+        clearPollInterval()
         paymentStatus.value = 'success'
         paymentMessage.value = 'Payment successful! Your booking is confirmed.'
 
@@ -125,16 +131,18 @@ const pollPaymentStatus = async (checkoutRequestId: string) => {
           spots_booked: numPeople.value,
           total_price: totalPrice.value,
           payment_method: 'mpesa',
-          checkout_request_id: checkoutRequestId,
+          payment_id: activePaymentId,
+          receipt_number: result.receipt_number,
+          provider_transaction_id: result.provider_transaction_id,
         })
-      } else if (result.message?.failed) {
-        clearInterval(pollInterval)
+      } else if (result.failed) {
+        clearPollInterval()
         paymentStatus.value = 'failed'
-        paymentMessage.value = result.message?.error || 'Payment failed. Please try again.'
+        paymentMessage.value = result.message || 'Payment failed. Please try again.'
       }
 
       if (attempts >= maxAttempts) {
-        clearInterval(pollInterval)
+        clearPollInterval()
         paymentStatus.value = 'processing'
         paymentMessage.value = 'Payment is taking longer than expected. Please check your M-Pesa messages.'
       }
@@ -145,6 +153,7 @@ const pollPaymentStatus = async (checkoutRequestId: string) => {
 }
 
 const resetForm = () => {
+  clearPollInterval()
   numPeople.value = 1
   userPhone.value = ''
   userEmail.value = ''
@@ -152,7 +161,12 @@ const resetForm = () => {
   agreeToTerms.value = false
   paymentStatus.value = 'idle'
   paymentMessage.value = ''
+  paymentId.value = ''
 }
+
+onUnmounted(() => {
+  clearPollInterval()
+})
 </script>
 
 <template>
@@ -175,7 +189,7 @@ const resetForm = () => {
                 v-model="userFullName"
                 type="text"
                 placeholder="John Doe"
-                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all outline-none"
+                class="soft-input w-full px-4 py-3"
                 required
               />
             </div>
@@ -187,7 +201,7 @@ const resetForm = () => {
                 v-model="userEmail"
                 type="email"
                 placeholder="john@example.com"
-                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all outline-none"
+                class="soft-input w-full px-4 py-3"
                 required
               />
             </div>
@@ -199,7 +213,7 @@ const resetForm = () => {
                 v-model="userPhone"
                 type="tel"
                 placeholder="254712345678"
-                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all outline-none"
+                class="soft-input w-full px-4 py-3"
                 required
               />
               <p class="text-xs text-gray-500 mt-1">Include country code (e.g., 254...)</p>
@@ -222,7 +236,7 @@ const resetForm = () => {
                   type="number"
                   min="1"
                   :max="trail.available_spots"
-                  class="flex-1 px-4 py-3 text-center border-2 border-gray-200 rounded-xl font-bold focus:border-emerald-500 outline-none"
+                  class="soft-input flex-1 px-4 py-3 text-center font-bold"
                   required
                 />
                 <button
@@ -240,7 +254,7 @@ const resetForm = () => {
         </div>
 
         <!-- Price Breakdown -->
-        <div class="bg-emerald-50 rounded-xl p-6 border-2 border-emerald-200">
+        <div class="surface-muted rounded-xl p-6 border">
           <div class="space-y-2 mb-4">
             <div class="flex justify-between items-center">
               <span class="text-gray-700">Price per person</span>
@@ -250,9 +264,9 @@ const resetForm = () => {
               <span class="text-gray-700">Number of people</span>
               <span class="font-bold text-gray-900">{{ numPeople }}</span>
             </div>
-            <div class="border-t-2 border-emerald-200 pt-2 flex justify-between items-center">
-              <span class="text-lg font-bold text-emerald-900">Total Amount</span>
-              <span class="text-3xl font-black text-emerald-700">{{ formatPrice(totalPrice) }}</span>
+            <div class="border-t border-[color:var(--color-border-soft)] pt-2 flex justify-between items-center">
+              <span class="text-lg font-bold brand-text-strong">Total Amount</span>
+              <span class="text-3xl font-black brand-text">{{ formatPrice(totalPrice) }}</span>
             </div>
           </div>
         </div>
@@ -262,7 +276,7 @@ const resetForm = () => {
           <label class="block text-sm font-bold text-gray-700 mb-3">Payment Method</label>
           <div class="flex gap-4">
             <label class="flex items-center gap-3 px-4 py-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-all"
-                   :class="paymentMethod === 'mpesa' ? 'border-emerald-500 bg-emerald-50' : ''">
+                   :class="paymentMethod === 'mpesa' ? 'border-[color:var(--color-border-strong)] bg-[rgba(49,83,72,0.08)]' : ''">
               <input
                 v-model="paymentMethod"
                 type="radio"
@@ -310,7 +324,7 @@ const resetForm = () => {
         <button
           type="submit"
           :disabled="!isFormValid || paymentProcessing"
-          class="w-full px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black rounded-xl hover:from-emerald-700 hover:to-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+          class="brand-button w-full px-8 py-4 font-black disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span v-if="!paymentProcessing">Complete Booking - {{ formatPrice(totalPrice) }}</span>
           <span v-else class="flex items-center justify-center gap-2">
@@ -323,7 +337,7 @@ const resetForm = () => {
       <!-- Success State -->
       <div v-else class="text-center py-12">
         <div class="text-6xl mb-4">✓</div>
-        <h3 class="text-3xl font-black text-emerald-700 mb-2">Booking Confirmed!</h3>
+        <h3 class="text-3xl font-black brand-text mb-2">Booking Confirmed!</h3>
         <p class="text-gray-600 mb-6 max-w-md mx-auto">
           Your booking has been confirmed. A confirmation email has been sent to {{ userEmail }}. You can view your booking in your dashboard.
         </p>
@@ -336,7 +350,7 @@ const resetForm = () => {
           </button>
           <RouterLink
             to="/bookings"
-            class="px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all"
+            class="brand-button px-8 py-3"
           >
             View My Bookings
           </RouterLink>

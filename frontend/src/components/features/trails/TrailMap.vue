@@ -19,6 +19,22 @@ let markers: L.Marker[] = []
 // Default to Kenya center if no trails
 const defaultCenter: [number, number] = [-0.0236, 37.9062] // Kenya center
 
+const hasValidCoordinates = (trail: Trail): boolean => {
+  const lat = trail.coordinates?.lat
+  const lng = trail.coordinates?.lng
+  return typeof lat === 'number' && typeof lng === 'number' && Number.isFinite(lat) && Number.isFinite(lng)
+}
+
+const escapeHtml = (value: unknown): string => {
+  const text = String(value ?? '')
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 const getDifficultyColor = (difficulty: string): string => {
   const colors: Record<string, string> = {
     'Easy': '#22c55e',      // green
@@ -78,7 +94,7 @@ const updateMarkers = () => {
   markers = []
 
   // Add markers for trails with coordinates
-  const trailsWithCoords = props.trails.filter(trail => trail.coordinates?.lat && trail.coordinates?.lng)
+  const trailsWithCoords = props.trails.filter(hasValidCoordinates)
   
   if (trailsWithCoords.length === 0) return
 
@@ -97,14 +113,14 @@ const updateMarkers = () => {
     // Create popup content
     const popupContent = `
       <div style="min-width: 200px; padding: 8px;">
-        <h3 style="margin: 0 0 8px 0; font-weight: bold; color: #1f2937;">${trail.title}</h3>
-        <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">📍 ${trail.location}</p>
-        <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">📅 ${new Date(trail.scheduled_date).toLocaleDateString()}</p>
-        <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">⏰ ${trail.start_time}</p>
+        <h3 style="margin: 0 0 8px 0; font-weight: bold; color: #1f2937;">${escapeHtml(trail.title)}</h3>
+        <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">📍 ${escapeHtml(trail.location)}</p>
+        <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">📅 ${escapeHtml(new Date(trail.scheduled_date).toLocaleDateString())}</p>
+        <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">⏰ ${escapeHtml(trail.start_time)}</p>
         <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">💰 ${new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0 }).format(trail.price_kshs)}</p>
         <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">👥 ${trail.available_spots} spots available</p>
         <button 
-          data-trail-id="${trail.id}"
+          data-role="view-trail-details"
           class="trail-map-popup-button"
           style="
             margin-top: 8px;
@@ -126,8 +142,8 @@ const updateMarkers = () => {
 
     marker.bindPopup(popupContent)
     marker.on('popupopen', () => {
-      // Add click handler when popup opens
-      const button = document.querySelector(`.trail-map-popup-button[data-trail-id="${trail.id}"]`)
+      const popupContainer = marker.getPopup()?.getElement()
+      const button = popupContainer?.querySelector('.trail-map-popup-button[data-role="view-trail-details"]')
       if (button) {
         button.addEventListener('click', () => {
           emit('trailClick', trail)
@@ -161,13 +177,13 @@ watch(() => props.trails, () => {
   if (map) {
     updateMarkers()
   }
-}, { deep: true })
+})
 </script>
 
 <template>
   <div class="trail-map-container">
     <div ref="mapContainer" class="map" style="height: 600px; width: 100%; border-radius: 1rem; overflow: hidden;"></div>
-    <div v-if="trails.filter(t => t.coordinates?.lat && t.coordinates?.lng).length === 0" class="map-empty-state">
+    <div v-if="trails.filter(hasValidCoordinates).length === 0" class="map-empty-state">
       <p class="text-gray-500">No trails with location data available</p>
     </div>
   </div>
@@ -209,4 +225,3 @@ watch(() => props.trails, () => {
   border: none;
 }
 </style>
-

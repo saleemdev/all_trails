@@ -46,9 +46,23 @@ export interface TrailBooking {
   booking_date: string;
   status: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed';
   spots_booked: number;
+  base_price?: number;
+  activities_price?: number;
   total_price: number;
-  payment_status: 'Pending' | 'Completed' | 'Failed' | 'Refunded';
+  payment_status:
+    | 'Pending'
+    | 'Prompt Sent'
+    | 'Callback Received'
+    | 'Paid'
+    | 'Failed'
+    | 'Cancelled'
+    | 'Timeout'
+    | 'Completed';
+  payment?: string | null;
+  payment_ticket?: string | null;
   payment_method?: 'MPESA' | 'Stripe' | 'Cash';
+  payment_attempt_count?: number;
+  last_payment_attempt_on?: string | null;
   mpesa_receipt_number?: string;
   mpesa_phone_number?: string;
   mpesa_transaction_id?: string;
@@ -63,9 +77,81 @@ export interface TrailBooking {
     activity_name: string;
     quantity: number;
     price: number;
+    total_price?: number;
   }>; // Selected extra activities
   created_at: string;
   updated_at: string;
+}
+
+export type MpesaPaymentStatus =
+  | 'Pending'
+  | 'Prompt Sent'
+  | 'Callback Received'
+  | 'Paid'
+  | 'Failed'
+  | 'Cancelled'
+  | 'Timeout';
+
+export interface MpesaPaymentRequest {
+  journey_type: string;
+  reference_name: string;
+  amount: number;
+  phone_number: string;
+  reference_doctype?: string;
+  company?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface MpesaPaymentInitiation {
+  success: boolean;
+  payment_id: string;
+  status: MpesaPaymentStatus;
+  message: string;
+  provider_status_code?: string;
+  provider_status_message?: string;
+  failure_reason?: string;
+  checkout_request_id?: string;
+  merchant_request_id?: string;
+  ticket_id?: string;
+  ticket_status?: string;
+  amount: number;
+  phone_number: string;
+  callback_url?: string;
+}
+
+export interface MpesaPaymentState {
+  payment_id: string;
+  status: MpesaPaymentStatus;
+  paid: boolean;
+  failed: boolean;
+  is_terminal?: boolean;
+  message: string;
+  checkout_request_id?: string;
+  merchant_request_id?: string;
+  ticket_id?: string;
+  ticket_status?: string;
+  receipt_number?: string;
+  provider_transaction_id?: string;
+  provider_status_code?: string;
+  provider_status_message?: string;
+  failure_reason?: string;
+  amount: number;
+  phone_number: string;
+  reference_name: string;
+  reference_doctype?: string;
+  payment_journey: string;
+  paid_on?: string;
+  callback_received_on?: string;
+  attempt_no?: number;
+  stale_callback_count?: number;
+  attempt_history?: Array<{
+    attempt_no: number;
+    initiated_at?: string;
+    checkout_request_id?: string;
+    merchant_request_id?: string;
+    status_after_callback?: string;
+    callback_received_on?: string;
+  }>;
 }
 
 // User Types
@@ -126,7 +212,7 @@ export interface BlogPost {
   slug: string;
   excerpt: string;
   content: string;
-  featured_image: string;
+  featured_image?: string;
   author: string;
   author_image?: string;
   category: string;
@@ -162,3 +248,39 @@ export interface BlogFilters {
   tag?: string;
 }
 
+export interface BlogComment {
+  id: string;
+  author: string;
+  email?: string;
+  content: string;
+  created_at: string;
+}
+
+export interface BlogPostInput {
+  title: string;
+  content: string;
+  slug?: string;
+  excerpt?: string;
+  featured_image?: string;
+  published?: 0 | 1;
+}
+
+export interface RegisterMemberPayload {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name?: string;
+  phone?: string;
+}
+
+export interface RegisterMemberResponse {
+  success: boolean;
+  user: string;
+  member: string;
+  message: string;
+}
+
+export interface BookingPaymentStatusResponse {
+  booking: TrailBooking;
+  payment: MpesaPaymentState;
+}

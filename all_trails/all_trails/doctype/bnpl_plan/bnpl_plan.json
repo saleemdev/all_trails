@@ -1,0 +1,112 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:BNPL-{#####}",
+ "creation": "2026-03-14 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "merchandise_order",
+  "upfront_amount",
+  "remaining_amount",
+  "installment_amount",
+  "status",
+  "schedule_json",
+  "next_due_date",
+  "installments_paid",
+  "installments_total"
+ ],
+ "fields": [
+  {
+   "fieldname": "merchandise_order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Merchandise Order",
+   "options": "Merchandise Order",
+   "reqd": 1
+  },
+  {
+   "fieldname": "upfront_amount",
+   "fieldtype": "Currency",
+   "label": "Upfront Amount"
+  },
+  {
+   "fieldname": "remaining_amount",
+   "fieldtype": "Currency",
+   "label": "Remaining Amount"
+  },
+  {
+   "fieldname": "installment_amount",
+   "fieldtype": "Currency",
+   "label": "Installment Amount"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Awaiting Deposit\nActive\nCompleted\nDefaulted",
+   "reqd": 1
+  },
+  {
+   "fieldname": "schedule_json",
+   "fieldtype": "Long Text",
+   "label": "Schedule JSON"
+  },
+  {
+   "fieldname": "next_due_date",
+   "fieldtype": "Datetime",
+   "label": "Next Due Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "installments_paid",
+   "fieldtype": "Int",
+   "label": "Installments Paid"
+  },
+  {
+   "default": "2",
+   "fieldname": "installments_total",
+   "fieldtype": "Int",
+   "label": "Installments Total"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-14 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "All Trails",
+ "name": "BNPL Plan",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "merchandise_order"
+}

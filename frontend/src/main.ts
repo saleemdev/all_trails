@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { FrappeUI } from 'frappe-ui'
+import axios from 'axios'
 import './styles/globals.css'
 import App from './App.vue'
 import router from './router'
@@ -24,13 +24,10 @@ if (typeof window !== 'undefined') {
 if (typeof window !== 'undefined') {
   // SECURITY: Validate CSRF token is available
   if (!(window as any).csrf_token) {
-    console.error('[SECURITY] CSRF token is not available. Frappe may not have injected it properly.');
+    console.warn('[SECURITY] CSRF token is not available. Frappe may not have injected it properly.');
   } else {
-    console.log('[SECURITY] CSRF token initialized successfully');
     // Set up axios defaults for CSRF token
-    import('axios').then((axiosModule) => {
-      axiosModule.default.defaults.headers.common['X-Frappe-CSRF-Token'] = (window as any).csrf_token;
-    });
+    axios.defaults.headers.common['X-Frappe-CSRF-Token'] = (window as any).csrf_token;
   }
 }
 
@@ -38,7 +35,6 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
-app.use(FrappeUI)
 
 // Listen for session expiry events from API interceptor
 if (typeof window !== 'undefined') {
@@ -48,7 +44,8 @@ if (typeof window !== 'undefined') {
     authStore.handleSessionExpiry();
     // Redirect to login if on a protected route
     if (router.currentRoute.value.meta?.requiresAuth) {
-      window.location.href = '/app/login?redirect-to=' + encodeURIComponent(window.location.href);
+      const redirectTarget = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      window.location.href = '/app/login?redirect-to=' + encodeURIComponent(redirectTarget);
     }
   };
 

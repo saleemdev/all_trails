@@ -1,0 +1,214 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:item_code",
+ "creation": "2026-03-14 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "item_code",
+  "slug",
+  "item_name",
+  "category",
+  "short_description",
+  "description",
+  "selling_price",
+  "discount_price",
+  "featured_image",
+  "gallery_json",
+  "highlights_json",
+  "materials_json",
+  "badges_json",
+  "inventory_qty",
+  "available_colors_json",
+  "available_sizes_json",
+  "estimated_dispatch",
+  "is_featured",
+  "is_active",
+  "bnpl_eligible",
+  "bnpl_min_amount",
+  "average_rating",
+  "review_count",
+  "position_in_category"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Item Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "slug",
+   "fieldtype": "Data",
+   "label": "Slug",
+   "unique": 1
+  },
+  {
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Item Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "label": "Category",
+   "options": "Merchandise Category",
+   "reqd": 1
+  },
+  {
+   "fieldname": "short_description",
+   "fieldtype": "Small Text",
+   "label": "Short Description"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Long Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "selling_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Selling Price",
+   "reqd": 1
+  },
+  {
+   "fieldname": "discount_price",
+   "fieldtype": "Currency",
+   "label": "Discount Price"
+  },
+  {
+   "fieldname": "featured_image",
+   "fieldtype": "Data",
+   "label": "Featured Image"
+  },
+  {
+   "fieldname": "gallery_json",
+   "fieldtype": "Long Text",
+   "label": "Gallery JSON"
+  },
+  {
+   "fieldname": "highlights_json",
+   "fieldtype": "Long Text",
+   "label": "Highlights JSON"
+  },
+  {
+   "fieldname": "materials_json",
+   "fieldtype": "Long Text",
+   "label": "Materials JSON"
+  },
+  {
+   "fieldname": "badges_json",
+   "fieldtype": "Long Text",
+   "label": "Badges JSON"
+  },
+  {
+   "default": "0",
+   "fieldname": "inventory_qty",
+   "fieldtype": "Int",
+   "label": "Inventory Qty"
+  },
+  {
+   "fieldname": "available_colors_json",
+   "fieldtype": "Long Text",
+   "label": "Available Colors JSON"
+  },
+  {
+   "fieldname": "available_sizes_json",
+   "fieldtype": "Long Text",
+   "label": "Available Sizes JSON"
+  },
+  {
+   "fieldname": "estimated_dispatch",
+   "fieldtype": "Data",
+   "label": "Estimated Dispatch"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_featured",
+   "fieldtype": "Check",
+   "label": "Is Featured"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active"
+  },
+  {
+   "default": "1",
+   "fieldname": "bnpl_eligible",
+   "fieldtype": "Check",
+   "label": "BNPL Eligible"
+  },
+  {
+   "default": "9000",
+   "fieldname": "bnpl_min_amount",
+   "fieldtype": "Currency",
+   "label": "BNPL Minimum Amount"
+  },
+  {
+   "default": "0",
+   "fieldname": "average_rating",
+   "fieldtype": "Float",
+   "label": "Average Rating",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "review_count",
+   "fieldtype": "Int",
+   "label": "Review Count",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "position_in_category",
+   "fieldtype": "Int",
+   "label": "Position In Category"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-14 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "All Trails",
+ "name": "Merchandise Item",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "item_name"
+}

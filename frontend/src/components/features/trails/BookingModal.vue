@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { Dialog, Button, FormControl } from 'frappe-ui'
 import type { Trail, TrailBooking, ExtraActivity } from '../../../types/index'
 import { useBookingsStore } from '../../../stores/bookingsStore'
 import { useUiStore } from '../../../stores/uiStore'
 import { apiService } from '../../../services/api'
+import { isValidKenyanMpesaPhone, maskKenyanPhone, normalizeKenyanMpesaPhone } from '../../../utils/payments'
 
 const props = defineProps<{
   trail: Trail | null
@@ -31,23 +32,30 @@ const isSubmitting = ref(false)
 const currentStep = ref<'booking' | 'payment' | 'confirm'>('booking')
 const createdBooking = ref<TrailBooking | null>(null)
 const mpesaPhoneNumber = ref('')
-const mpesaReceiptNumber = ref('')
-const mpesaTransactionId = ref('')
 const isProcessingPayment = ref(false)
-const paymentStep = ref<'initiate' | 'confirm'>('initiate')
+const paymentStep = ref<'initiate' | 'processing' | 'failed'>('initiate')
+const activePaymentId = ref('')
+const paymentStatusMessage = ref('')
+const paymentReceiptNumber = ref('')
+
+let paymentPollHandle: ReturnType<typeof setInterval> | null = null
+let paymentPollAttempts = 0
+const maxPaymentPollAttempts = 30
 
 // Reset form function
 const resetForm = () => {
+  clearPaymentPolling()
   spotsBooked.value = 1
   selectedActivities.value = {}
   isSubmitting.value = false
   currentStep.value = 'booking'
   createdBooking.value = null
   mpesaPhoneNumber.value = ''
-  mpesaReceiptNumber.value = ''
-  mpesaTransactionId.value = ''
   isProcessingPayment.value = false
   paymentStep.value = 'initiate'
+  activePaymentId.value = ''
+  paymentStatusMessage.value = ''
+  paymentReceiptNumber.value = ''
 }
 
 // Watch for modal close to reset form
@@ -91,6 +99,8 @@ const activitiesPrice = computed(() => {
 const totalPrice = computed(() => {
   return basePrice.value + activitiesPrice.value
 })
+
+const maskedMpesaPhoneNumber = computed(() => maskKenyanPhone(mpesaPhoneNumber.value))
 
 const maxSpots = computed(() => {
   if (!props.trail) return 0
@@ -149,6 +159,95 @@ const isActivitySelected = (activityId: string) => {
   return !!selectedActivities.value[activityId] && selectedActivities.value[activityId] > 0
 }
 
+const clearPaymentPolling = () => {
+  if (paymentPollHandle) {
+    clearInterval(paymentPollHandle)
+    paymentPollHandle = null
+  }
+  paymentPollAttempts = 0
+}
+
+const updateBookingPaymentState = (receiptNumber?: string, transactionId?: string) => {
+  if (!createdBooking.value) {
+    return
+  }
+
+  createdBooking.value.payment_status = 'Completed'
+  createdBooking.value.status = 'Confirmed'
+  createdBooking.value.payment_method = 'MPESA'
+  createdBooking.value.mpesa_phone_number = normalizeKenyanMpesaPhone(mpesaPhoneNumber.value)
+  createdBooking.value.mpesa_receipt_number = receiptNumber
+  createdBooking.value.mpesa_transaction_id = transactionId
+}
+
+const finishSuccessfulPayment = async (paymentState: any) => {
+  clearPaymentPolling()
+  paymentReceiptNumber.value = paymentState.receipt_number || ''
+  updateBookingPaymentState(paymentState.receipt_number, paymentState.provider_transaction_id)
+  uiStore.showSuccess(paymentState.message || 'Payment confirmed successfully!')
+  currentStep.value = 'confirm'
+  await bookingsStore.fetchUserBookings()
+  emit('success')
+}
+
+const checkPaymentStatus = async (paymentId: string) => {
+  const paymentState = await apiService.getMpesaPaymentStatus(paymentId)
+  paymentStatusMessage.value = paymentState.message || paymentState.status
+
+  if (paymentState.paid) {
+    await finishSuccessfulPayment(paymentState)
+    return
+  }
+
+  if (paymentState.failed) {
+    clearPaymentPolling()
+    paymentStep.value = 'failed'
+    uiStore.showError(paymentState.message || 'MPESA payment did not complete successfully.')
+    return
+  }
+
+  paymentStep.value = 'processing'
+}
+
+const startPaymentPolling = async (paymentId: string) => {
+  clearPaymentPolling()
+  paymentPollAttempts = 0
+
+  const poll = async () => {
+    paymentPollAttempts += 1
+    try {
+      await checkPaymentStatus(paymentId)
+    } catch (error) {
+      if (paymentPollAttempts >= maxPaymentPollAttempts) {
+        clearPaymentPolling()
+        paymentStatusMessage.value = 'Still waiting for confirmation. You can keep this modal open and check again shortly.'
+      }
+      if (error instanceof Error) {
+        console.error('Payment status polling failed:', error)
+      }
+    }
+
+    if (paymentPollAttempts >= maxPaymentPollAttempts) {
+      clearPaymentPolling()
+    }
+  }
+
+  await poll()
+  if (currentStep.value === 'payment' && paymentStep.value === 'processing') {
+    paymentPollHandle = setInterval(() => {
+      void poll()
+    }, 3000)
+  }
+}
+
+const resetPaymentState = () => {
+  clearPaymentPolling()
+  activePaymentId.value = ''
+  paymentStatusMessage.value = ''
+  paymentReceiptNumber.value = ''
+  paymentStep.value = 'initiate'
+}
+
 const handleMpesaPayment = async () => {
   if (!createdBooking.value) {
     uiStore.showError('Booking not found. Please try again.')
@@ -160,18 +259,40 @@ const handleMpesaPayment = async () => {
     return
   }
 
-  // Validate phone number format (should be 254XXXXXXXXX)
-  const phoneRegex = /^254\d{9}$/
-  if (!phoneRegex.test(mpesaPhoneNumber.value)) {
+  const normalizedPhone = normalizeKenyanMpesaPhone(mpesaPhoneNumber.value)
+  if (!isValidKenyanMpesaPhone(normalizedPhone)) {
     uiStore.showError('Please enter a valid MPESA phone number (format: 254712345678)')
     return
   }
 
   isProcessingPayment.value = true
   try {
-    await apiService.initiateMpesaPayment(createdBooking.value.id, mpesaPhoneNumber.value)
-    uiStore.showSuccess('Payment request initiated. Please complete the MPESA payment on your phone.')
-    paymentStep.value = 'confirm'
+    mpesaPhoneNumber.value = normalizedPhone
+    const paymentResponse = await apiService.initiateMpesaPayment({
+      journey_type: 'Trail Booking',
+      reference_name: createdBooking.value.id,
+      reference_doctype: 'Trail Booking',
+      phone_number: normalizedPhone,
+      amount: createdBooking.value.total_price,
+      metadata: {
+        trail_id: props.trail?.id || '',
+        trail_title: props.trail?.title || '',
+        confirmation_code: createdBooking.value.confirmation_code,
+      },
+    })
+
+    activePaymentId.value = paymentResponse.payment_id
+    paymentStatusMessage.value = paymentResponse.message
+
+    if (!paymentResponse.success) {
+      paymentStep.value = 'failed'
+      uiStore.showError(paymentResponse.message || 'Failed to initiate payment')
+      return
+    }
+
+    paymentStep.value = 'processing'
+    uiStore.showSuccess('Payment prompt sent. Complete the MPESA prompt on your phone.')
+    await startPaymentPolling(paymentResponse.payment_id)
   } catch (error) {
     uiStore.showError(error instanceof Error ? error.message : 'Failed to initiate payment')
   } finally {
@@ -179,31 +300,24 @@ const handleMpesaPayment = async () => {
   }
 }
 
-const handleConfirmPayment = async () => {
-  if (!createdBooking.value || !mpesaReceiptNumber.value || !mpesaTransactionId.value) {
-    uiStore.showError('Please enter both receipt number and transaction ID')
+const handleRefreshPaymentStatus = async () => {
+  if (!activePaymentId.value) {
+    uiStore.showError('Payment session not found. Please retry the payment.')
     return
   }
 
   isProcessingPayment.value = true
   try {
-    await apiService.confirmMpesaPayment(
-      createdBooking.value.id,
-      mpesaReceiptNumber.value,
-      mpesaTransactionId.value
-    )
-    uiStore.showSuccess('Payment confirmed successfully!')
-    currentStep.value = 'confirm'
-    // Refresh bookings
-    await bookingsStore.fetchUserBookings()
+    await checkPaymentStatus(activePaymentId.value)
   } catch (error) {
-    uiStore.showError(error instanceof Error ? error.message : 'Failed to confirm payment')
+    uiStore.showError(error instanceof Error ? error.message : 'Failed to refresh payment status')
   } finally {
     isProcessingPayment.value = false
   }
 }
 
 const handleSkipPayment = () => {
+  clearPaymentPolling()
   currentStep.value = 'confirm'
   uiStore.showSuccess('Booking created! You can complete payment later.')
 }
@@ -231,6 +345,10 @@ const dialogTitle = computed(() => {
   if (currentStep.value === 'booking') return 'Book Trail'
   if (currentStep.value === 'payment') return 'Complete Payment'
   return 'Booking Confirmed!'
+})
+
+onUnmounted(() => {
+  clearPaymentPolling()
 })
 </script>
 
@@ -269,7 +387,7 @@ const dialogTitle = computed(() => {
           </div>
           <p class="text-sm text-gray-600">
             <span class="font-semibold text-gray-700">Optional:</span> Enhance your trail experience with additional activities. 
-            <span class="font-semibold text-emerald-700">Each activity adds extra cost.</span>
+            <span class="font-semibold brand-text">Each activity adds extra cost.</span>
           </p>
           
           <div class="space-y-3">
@@ -278,9 +396,9 @@ const dialogTitle = computed(() => {
               :key="activity.id"
               class="border-2 rounded-xl p-4 transition-all"
               :class="isActivitySelected(activity.id)
-                ? 'border-emerald-500 bg-emerald-50'
+                ? 'border-[color:var(--color-border-strong)] bg-[rgba(49,83,72,0.08)]'
                 : activity.available
-                  ? 'border-gray-200 hover:border-emerald-300 bg-white'
+                  ? 'border-gray-200 hover:border-[color:var(--color-border-strong)] bg-white'
                   : 'border-gray-100 bg-gray-50 opacity-60'"
             >
               <div class="flex items-start justify-between gap-4">
@@ -294,7 +412,7 @@ const dialogTitle = computed(() => {
                   </div>
                   <p class="text-sm text-gray-600 mb-2">{{ activity.description }}</p>
                   <div class="flex items-center gap-4 text-xs">
-                    <span class="font-bold text-emerald-700">+{{ formatPrice(activity.price_kshs) }} <span class="text-gray-500 font-normal">extra</span></span>
+                    <span class="font-bold brand-text">+{{ formatPrice(activity.price_kshs) }} <span class="text-gray-500 font-normal">extra</span></span>
                     <span v-if="activity.max_participants" class="text-gray-500">Max: {{ activity.max_participants }} people</span>
                     <span v-if="activity.available_spots !== undefined" class="text-gray-500">Available: {{ activity.available_spots }} spots</span>
                   </div>
@@ -304,7 +422,7 @@ const dialogTitle = computed(() => {
                   <button
                     v-if="!isActivitySelected(activity.id)"
                     @click="toggleActivity(activity.id)"
-                    class="px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-colors text-sm shadow-md hover:shadow-lg"
+                    class="brand-button px-4 py-2 text-sm"
                     :aria-label="`Add ${activity.name} for ${formatPrice(activity.price_kshs)} extra`"
                   >
                     Add (+{{ formatPrice(activity.price_kshs) }})
@@ -358,7 +476,7 @@ const dialogTitle = computed(() => {
             <span>Base total</span>
             <span>{{ formatPrice(basePrice) }}</span>
           </div>
-          <div v-if="activitiesPrice > 0" class="flex justify-between text-emerald-700 font-semibold">
+          <div v-if="activitiesPrice > 0" class="flex justify-between brand-text font-semibold">
             <span>Extra activities (optional)</span>
             <span>+{{ formatPrice(activitiesPrice) }}</span>
           </div>
@@ -368,11 +486,11 @@ const dialogTitle = computed(() => {
           </div>
           <div class="flex justify-between font-bold text-lg pt-2 border-t border-gray-200">
             <span>Total Price</span>
-            <span class="text-emerald-700">{{ formatPrice(totalPrice) }}</span>
+            <span class="brand-text">{{ formatPrice(totalPrice) }}</span>
           </div>
         </div>
 
-        <div class="bg-emerald-900 text-white rounded-lg p-4">
+        <div class="page-header text-white rounded-lg p-4">
           <h3 class="font-bold mb-1">{{ trail.title }}</h3>
           <p class="text-sm opacity-90">
             {{ new Date(trail.scheduled_date).toLocaleDateString() }} at {{ trail.start_time }}
@@ -384,7 +502,7 @@ const dialogTitle = computed(() => {
       <div v-else-if="currentStep === 'payment' && createdBooking" class="space-y-6">
         <div class="text-center mb-6">
           <h3 class="text-xl font-bold mb-2">Complete Payment</h3>
-          <p class="text-2xl font-bold text-emerald-700">Total: {{ formatPrice(createdBooking.total_price) }}</p>
+          <p class="text-2xl font-bold brand-text">Total: {{ formatPrice(createdBooking.total_price) }}</p>
         </div>
 
         <!-- Initiate Payment -->
@@ -405,24 +523,32 @@ const dialogTitle = computed(() => {
           </div>
         </div>
 
-        <!-- Confirm Payment -->
-        <div v-else-if="paymentStep === 'confirm'">
-          <FormControl
-            label="MPESA Receipt Number"
-            type="text"
-            v-model="mpesaReceiptNumber"
-            placeholder="Enter receipt number"
-            class="mb-4"
-          />
-          <FormControl
-            label="MPESA Transaction ID"
-            type="text"
-            v-model="mpesaTransactionId"
-            placeholder="Enter transaction ID"
-            class="mb-4"
-          />
-          <div class="bg-green-50 rounded-lg p-4">
-            <p>✅ Enter the details from your MPESA confirmation message</p>
+        <!-- Awaiting Callback -->
+        <div v-else-if="paymentStep === 'processing'" class="space-y-4">
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+            <p class="font-semibold text-blue-900">Waiting for MPESA confirmation</p>
+            <p class="text-sm text-blue-900">
+              Complete the prompt on {{ maskedMpesaPhoneNumber }}. This modal checks your payment automatically.
+            </p>
+            <p class="text-sm text-blue-800">
+              {{ paymentStatusMessage || 'Prompt sent. Enter your PIN on your phone to finish payment.' }}
+            </p>
+            <p v-if="activePaymentId" class="text-xs text-blue-700">
+              Payment reference: {{ activePaymentId }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Failed / Retry -->
+        <div v-else-if="paymentStep === 'failed'" class="space-y-4">
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4 space-y-2">
+            <p class="font-semibold text-red-900">Payment did not complete</p>
+            <p class="text-sm text-red-800">
+              {{ paymentStatusMessage || 'The MPESA prompt was not completed successfully. You can retry or pay later.' }}
+            </p>
+            <p v-if="paymentReceiptNumber" class="text-xs text-red-700">
+              Last receipt: {{ paymentReceiptNumber }}
+            </p>
           </div>
         </div>
       </div>
@@ -434,7 +560,7 @@ const dialogTitle = computed(() => {
         <div class="bg-gray-50 rounded-lg p-4 space-y-3 text-left">
           <div class="flex justify-between">
             <span class="font-medium text-gray-600">Confirmation Code:</span>
-            <span class="font-mono font-bold text-emerald-700">{{ createdBooking.confirmation_code }}</span>
+            <span class="font-mono font-bold brand-text">{{ createdBooking.confirmation_code }}</span>
           </div>
           <div class="flex justify-between">
             <span class="font-medium text-gray-600">Trail:</span>
@@ -461,7 +587,7 @@ const dialogTitle = computed(() => {
           </div>
           <div class="flex justify-between font-bold pt-2 border-t-2 border-gray-300">
             <span>Total:</span>
-            <span class="text-emerald-700">{{ formatPrice(createdBooking.total_price) }}</span>
+            <span class="brand-text">{{ formatPrice(createdBooking.total_price) }}</span>
           </div>
         </div>
       </div>
@@ -472,7 +598,7 @@ const dialogTitle = computed(() => {
         <Button variant="outline" @click="handleCancel">Cancel</Button>
         <Button
           variant="solid"
-          theme="green"
+          theme="gray"
           :loading="isSubmitting"
           @click="handleBookingSubmit"
         >
@@ -482,9 +608,9 @@ const dialogTitle = computed(() => {
 
       <!-- Payment Step Actions -->
       <div v-else-if="currentStep === 'payment'" class="flex gap-2">
-        <Button variant="outline" @click="currentStep = 'booking'">Back</Button>
+        <Button variant="outline" @click="resetPaymentState(); currentStep = 'booking'">Back</Button>
         <Button
-          v-if="paymentStep === 'initiate'"
+          v-if="paymentStep !== 'processing'"
           variant="outline"
           @click="handleSkipPayment"
         >
@@ -493,28 +619,37 @@ const dialogTitle = computed(() => {
         <Button
           v-if="paymentStep === 'initiate'"
           variant="solid"
-          theme="green"
+          theme="gray"
           :loading="isProcessingPayment"
           :disabled="!mpesaPhoneNumber"
           @click="handleMpesaPayment"
         >
-          {{ isProcessingPayment ? 'Processing...' : 'Initiate Payment' }}
+          {{ isProcessingPayment ? 'Sending Prompt...' : 'Pay via MPESA' }}
+        </Button>
+        <Button
+          v-else-if="paymentStep === 'processing'"
+          variant="solid"
+          theme="gray"
+          :loading="isProcessingPayment"
+          :disabled="!activePaymentId"
+          @click="handleRefreshPaymentStatus"
+        >
+          {{ isProcessingPayment ? 'Checking...' : 'Check Again' }}
         </Button>
         <Button
           v-else
           variant="solid"
-          theme="green"
+          theme="gray"
           :loading="isProcessingPayment"
-          :disabled="!mpesaReceiptNumber || !mpesaTransactionId"
-          @click="handleConfirmPayment"
+          @click="resetPaymentState"
         >
-          {{ isProcessingPayment ? 'Confirming...' : 'Confirm Payment' }}
+          Retry Payment
         </Button>
       </div>
 
       <!-- Confirmation Step Actions -->
       <div v-else-if="currentStep === 'confirm'">
-        <Button variant="solid" theme="green" @click="handleComplete">Done</Button>
+        <Button variant="solid" theme="gray" @click="handleComplete">Done</Button>
       </div>
     </template>
   </Dialog>

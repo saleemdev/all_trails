@@ -1,0 +1,209 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:MO-{#####}",
+ "creation": "2026-03-14 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer_name",
+  "customer_email",
+  "customer_phone",
+  "delivery_address",
+  "delivery_city",
+  "delivery_notes",
+  "items_json",
+  "payment_method",
+  "payment_status",
+  "fulfillment_status",
+  "subtotal_amount",
+  "shipping_amount",
+  "discount_amount",
+  "total_amount",
+  "amount_due_now",
+  "amount_remaining",
+  "coupon_code",
+  "mpesa_phone_number",
+  "mpesa_payment_id",
+  "tracking_number",
+  "estimated_delivery_window",
+  "timeline_json",
+  "bnpl_plan"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Customer Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer_email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Customer Email",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer_phone",
+   "fieldtype": "Data",
+   "label": "Customer Phone",
+   "reqd": 1
+  },
+  {
+   "fieldname": "delivery_address",
+   "fieldtype": "Long Text",
+   "label": "Delivery Address",
+   "reqd": 1
+  },
+  {
+   "fieldname": "delivery_city",
+   "fieldtype": "Data",
+   "label": "Delivery City",
+   "reqd": 1
+  },
+  {
+   "fieldname": "delivery_notes",
+   "fieldtype": "Small Text",
+   "label": "Delivery Notes"
+  },
+  {
+   "fieldname": "items_json",
+   "fieldtype": "Long Text",
+   "label": "Items JSON",
+   "reqd": 1
+  },
+  {
+   "fieldname": "payment_method",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Payment Method",
+   "options": "MPESA\nBNPL\nCash on Delivery",
+   "reqd": 1
+  },
+  {
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Payment Status",
+   "options": "Pending\nPrompt Sent\nPaid\nPartially Paid\nFailed\nCancelled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fulfillment_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Fulfillment Status",
+   "options": "Draft\nConfirmed\nProcessing\nPacked\nShipped\nDelivered\nCancelled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "subtotal_amount",
+   "fieldtype": "Currency",
+   "label": "Subtotal Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "shipping_amount",
+   "fieldtype": "Currency",
+   "label": "Shipping Amount"
+  },
+  {
+   "fieldname": "discount_amount",
+   "fieldtype": "Currency",
+   "label": "Discount Amount"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount_due_now",
+   "fieldtype": "Currency",
+   "label": "Amount Due Now"
+  },
+  {
+   "fieldname": "amount_remaining",
+   "fieldtype": "Currency",
+   "label": "Amount Remaining"
+  },
+  {
+   "fieldname": "coupon_code",
+   "fieldtype": "Data",
+   "label": "Coupon Code"
+  },
+  {
+   "fieldname": "mpesa_phone_number",
+   "fieldtype": "Data",
+   "label": "MPESA Phone Number"
+  },
+  {
+   "fieldname": "mpesa_payment_id",
+   "fieldtype": "Data",
+   "label": "MPESA Payment ID"
+  },
+  {
+   "fieldname": "tracking_number",
+   "fieldtype": "Data",
+   "label": "Tracking Number"
+  },
+  {
+   "fieldname": "estimated_delivery_window",
+   "fieldtype": "Data",
+   "label": "Estimated Delivery Window"
+  },
+  {
+   "fieldname": "timeline_json",
+   "fieldtype": "Long Text",
+   "label": "Timeline JSON"
+  },
+  {
+   "fieldname": "bnpl_plan",
+   "fieldtype": "Link",
+   "label": "BNPL Plan",
+   "options": "BNPL Plan"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-14 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "All Trails",
+ "name": "Merchandise Order",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "customer_name"
+}

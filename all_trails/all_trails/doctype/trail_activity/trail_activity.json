@@ -1,0 +1,81 @@
+{
+ "actions": [],
+ "creation": "2026-03-15 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "activity_name",
+  "description",
+  "column_break_activity",
+  "price_kshs",
+  "icon",
+  "available",
+  "max_participants",
+  "available_spots",
+  "requires_booking"
+ ],
+ "fields": [
+  {
+   "fieldname": "activity_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Activity Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_activity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "price_kshs",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Price (KES)"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "default": "1",
+   "fieldname": "available",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Available"
+  },
+  {
+   "fieldname": "max_participants",
+   "fieldtype": "Int",
+   "label": "Max Participants"
+  },
+  {
+   "fieldname": "available_spots",
+   "fieldtype": "Int",
+   "label": "Available Spots"
+  },
+  {
+   "default": "0",
+   "fieldname": "requires_booking",
+   "fieldtype": "Check",
+   "label": "Requires Booking"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-03-15 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "All Trails",
+ "name": "Trail Activity",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "idx",
+ "sort_order": "ASC",
+ "states": []
+}

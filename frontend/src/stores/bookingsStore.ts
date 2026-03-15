@@ -57,7 +57,7 @@ export const useBookingsStore = defineStore('bookings', () => {
     error.value = null;
     try {
       const newBooking = await apiService.createBooking(trailId, spotsBooked, selectedActivities);
-      bookings.value.push(newBooking);
+      bookings.value.unshift(newBooking);
       return newBooking;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to create booking';
@@ -72,11 +72,18 @@ export const useBookingsStore = defineStore('bookings', () => {
     isLoading.value = true;
     error.value = null;
     try {
-      await apiService.cancelBooking(bookingId, reason);
+      const response = await apiService.cancelBooking(bookingId, reason);
       const booking = bookings.value.find(b => b.id === bookingId);
       if (booking) {
-        booking.status = 'Cancelled';
-        booking.cancellation_reason = reason;
+        if (response.booking) {
+          Object.assign(booking, response.booking);
+        } else {
+          booking.status = 'Cancelled';
+          booking.cancellation_reason = reason;
+        }
+      }
+      if (selectedBooking.value?.id === bookingId) {
+        selectedBooking.value = response.booking || booking || selectedBooking.value;
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to cancel booking';
@@ -100,4 +107,3 @@ export const useBookingsStore = defineStore('bookings', () => {
     cancelBooking,
   };
 });
-

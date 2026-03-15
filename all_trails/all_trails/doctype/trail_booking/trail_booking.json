@@ -1,0 +1,326 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-03-15 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "booking_tab",
+  "naming_series",
+  "trail",
+  "user",
+  "member",
+  "booking_date",
+  "column_break_booking",
+  "status",
+  "confirmation_code",
+  "idempotency_key",
+  "trail_snapshot_section",
+  "trail_title",
+  "trail_location",
+  "trail_scheduled_date",
+  "pricing_section",
+  "spots_booked",
+  "base_price",
+  "activities_price",
+  "column_break_pricing",
+  "total_price",
+  "currency",
+  "activities_section",
+  "selected_activities",
+  "payment_tab",
+  "payment_status",
+  "payment",
+  "payment_ticket",
+  "payment_method",
+  "column_break_payment",
+  "mpesa_phone_number",
+  "mpesa_receipt_number",
+  "mpesa_transaction_id",
+  "payment_attempt_count",
+  "last_payment_attempt_on",
+  "lifecycle_tab",
+  "cancelled_on",
+  "cancellation_reason",
+  "column_break_lifecycle",
+  "completed_on",
+  "status_log"
+ ],
+ "fields": [
+  {
+   "default": "TB-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "TB-.YYYY.-.#####"
+  },
+  {
+   "fieldname": "booking_tab",
+   "fieldtype": "Tab Break",
+   "label": "Booking"
+  },
+  {
+   "fieldname": "trail",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Trail",
+   "options": "Trail",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "options": "User",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "member",
+   "fieldtype": "Link",
+   "label": "Member",
+   "options": "Member"
+  },
+  {
+   "default": "Now",
+   "fieldname": "booking_date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Booking Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_booking",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending\nConfirmed\nCancelled\nCompleted"
+  },
+  {
+   "fieldname": "confirmation_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Confirmation Code",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "idempotency_key",
+   "fieldtype": "Data",
+   "label": "Idempotency Key",
+   "unique": 1
+  },
+  {
+   "fieldname": "trail_snapshot_section",
+   "fieldtype": "Section Break",
+   "label": "Trail Snapshot"
+  },
+  {
+   "fieldname": "trail_title",
+   "fieldtype": "Data",
+   "label": "Trail Title",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_location",
+   "fieldtype": "Data",
+   "label": "Trail Location",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_scheduled_date",
+   "fieldtype": "Date",
+   "label": "Trail Scheduled Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pricing_section",
+   "fieldtype": "Section Break",
+   "label": "Pricing"
+  },
+  {
+   "fieldname": "spots_booked",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Spots Booked",
+   "reqd": 1
+  },
+  {
+   "fieldname": "base_price",
+   "fieldtype": "Currency",
+   "label": "Base Price"
+  },
+  {
+   "fieldname": "activities_price",
+   "fieldtype": "Currency",
+   "label": "Activities Price"
+  },
+  {
+   "fieldname": "column_break_pricing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Price",
+   "reqd": 1
+  },
+  {
+   "default": "KES",
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "label": "Currency"
+  },
+  {
+   "fieldname": "activities_section",
+   "fieldtype": "Section Break",
+   "label": "Selected Activities"
+  },
+  {
+   "fieldname": "selected_activities",
+   "fieldtype": "Table",
+   "label": "Selected Activities",
+   "options": "Trail Booking Activity"
+  },
+  {
+   "fieldname": "payment_tab",
+   "fieldtype": "Tab Break",
+   "label": "Payment"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Payment Status",
+   "options": "Pending\nPrompt Sent\nCallback Received\nPaid\nFailed\nCancelled\nTimeout\nCompleted"
+  },
+  {
+   "fieldname": "payment",
+   "fieldtype": "Link",
+   "label": "Payment",
+   "options": "All Trails Payment"
+  },
+  {
+   "fieldname": "payment_ticket",
+   "fieldtype": "Data",
+   "label": "Payment Ticket",
+   "read_only": 1
+  },
+  {
+   "default": "MPESA",
+   "fieldname": "payment_method",
+   "fieldtype": "Select",
+   "label": "Payment Method",
+   "options": "MPESA"
+  },
+  {
+   "fieldname": "column_break_payment",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mpesa_phone_number",
+   "fieldtype": "Data",
+   "label": "MPESA Phone Number"
+  },
+  {
+   "fieldname": "mpesa_receipt_number",
+   "fieldtype": "Data",
+   "label": "MPESA Receipt Number"
+  },
+  {
+   "fieldname": "mpesa_transaction_id",
+   "fieldtype": "Data",
+   "label": "MPESA Transaction ID"
+  },
+  {
+   "default": "0",
+   "fieldname": "payment_attempt_count",
+   "fieldtype": "Int",
+   "label": "Payment Attempt Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_payment_attempt_on",
+   "fieldtype": "Datetime",
+   "label": "Last Payment Attempt On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "lifecycle_tab",
+   "fieldtype": "Tab Break",
+   "label": "Lifecycle"
+  },
+  {
+   "fieldname": "cancelled_on",
+   "fieldtype": "Datetime",
+   "label": "Cancelled On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cancellation_reason",
+   "fieldtype": "Small Text",
+   "label": "Cancellation Reason"
+  },
+  {
+   "fieldname": "column_break_lifecycle",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "completed_on",
+   "fieldtype": "Datetime",
+   "label": "Completed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status_log",
+   "fieldtype": "Long Text",
+   "label": "Status Log",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-15 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "All Trails",
+ "name": "Trail Booking",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Trail Member",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "confirmation_code"
+}

@@ -1,0 +1,274 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2026-03-14 00:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "provider",
+  "status",
+  "payment_journey",
+  "reference_doctype",
+  "reference_name",
+  "user",
+  "phone_number",
+  "amount",
+  "currency",
+  "company",
+  "business_short_code",
+  "mpesa_ticket",
+  "mpesa_payload",
+  "current_attempt_no",
+  "active_attempt_key",
+  "last_attempted_on",
+  "stale_callback_count",
+  "checkout_request_id",
+  "merchant_request_id",
+  "receipt_number",
+  "provider_transaction_id",
+  "provider_status_code",
+  "provider_status_message",
+  "failure_reason",
+  "callback_received_on",
+  "paid_on",
+  "payment_entry",
+  "metadata_json",
+  "raw_initiation_response",
+  "raw_callback_payload",
+  "attempts"
+ ],
+ "fields": [
+  {
+   "default": "MPESA",
+   "fieldname": "provider",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Provider",
+   "read_only": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending\nPrompt Sent\nCallback Received\nPaid\nFailed\nCancelled\nTimeout"
+  },
+  {
+   "fieldname": "payment_journey",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Payment Journey",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Data",
+   "label": "Reference DocType"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Reference Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "fieldname": "phone_number",
+   "fieldtype": "Data",
+   "label": "Phone Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "reqd": 1
+  },
+  {
+   "default": "KES",
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "label": "Currency"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "business_short_code",
+   "fieldtype": "Data",
+   "label": "Business Short Code"
+  },
+  {
+   "fieldname": "mpesa_ticket",
+   "fieldtype": "Link",
+   "label": "MPESA Ticket",
+   "options": "MPESA Ticket"
+  },
+  {
+   "fieldname": "mpesa_payload",
+   "fieldtype": "Link",
+   "label": "MPESA Payload",
+   "options": "MPESA Payload"
+  },
+  {
+   "default": "0",
+   "fieldname": "current_attempt_no",
+   "fieldtype": "Int",
+   "label": "Current Attempt No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "active_attempt_key",
+   "fieldtype": "Data",
+   "label": "Active Attempt Key",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_attempted_on",
+   "fieldtype": "Datetime",
+   "label": "Last Attempted On",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "stale_callback_count",
+   "fieldtype": "Int",
+   "label": "Stale Callback Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "checkout_request_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Checkout Request ID",
+   "unique": 1
+  },
+  {
+   "fieldname": "merchant_request_id",
+   "fieldtype": "Data",
+   "label": "Merchant Request ID"
+  },
+  {
+   "fieldname": "receipt_number",
+   "fieldtype": "Data",
+   "label": "Receipt Number"
+  },
+  {
+   "fieldname": "provider_transaction_id",
+   "fieldtype": "Data",
+   "label": "Provider Transaction ID"
+  },
+  {
+   "fieldname": "provider_status_code",
+   "fieldtype": "Data",
+   "label": "Provider Status Code"
+  },
+  {
+   "fieldname": "provider_status_message",
+   "fieldtype": "Small Text",
+   "label": "Provider Status Message"
+  },
+  {
+   "fieldname": "failure_reason",
+   "fieldtype": "Small Text",
+   "label": "Failure Reason"
+  },
+  {
+   "fieldname": "callback_received_on",
+   "fieldtype": "Datetime",
+   "label": "Callback Received On"
+  },
+  {
+   "fieldname": "paid_on",
+   "fieldtype": "Datetime",
+   "label": "Paid On"
+  },
+  {
+   "fieldname": "payment_entry",
+   "fieldtype": "Link",
+   "label": "Payment Entry",
+   "options": "Payment Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "metadata_json",
+   "fieldtype": "Long Text",
+   "label": "Metadata JSON"
+  },
+  {
+   "fieldname": "raw_initiation_response",
+   "fieldtype": "Long Text",
+   "label": "Raw Initiation Response"
+  },
+  {
+   "fieldname": "raw_callback_payload",
+   "fieldtype": "Long Text",
+   "label": "Raw Callback Payload"
+  },
+  {
+   "fieldname": "attempts",
+   "fieldtype": "Table",
+   "label": "Attempts",
+   "options": "All Trails Payment Attempt",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-14 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "All Trails",
+ "name": "All Trails Payment",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "if_owner": 1,
+   "read": 1,
+   "role": "Trail Member"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "reference_name"
+}

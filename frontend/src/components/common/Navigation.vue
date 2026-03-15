@@ -1,37 +1,51 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
-import { Avatar } from 'frappe-ui'
+import { useMerchandiseStore } from '../../stores/merchandiseStore'
+import { useUiStore } from '../../stores/uiStore'
+import { Avatar, toast } from 'frappe-ui'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const merchandiseStore = useMerchandiseStore()
+const uiStore = useUiStore()
 
 const currentRoute = computed(() => router.currentRoute.value.name)
 const mobileMenuOpen = ref(false)
 const userMenuOpen = ref(false)
 const userMenuRef = ref<HTMLElement | null>(null)
+const cartCount = computed(() => merchandiseStore.cartCount)
+const unreadNotifications = computed(() => uiStore.notifications.length)
+const themeMode = ref<'light' | 'dark'>('light')
 
-// Watch for auth state changes to ensure UI updates reactively
-watch(() => authStore.isAuthenticated, (newVal) => {
-  // Force reactivity - Navigation will update when auth state changes
-  if (newVal) {
-    console.log('User authenticated, updating navigation')
-  }
-}, { immediate: true })
+const THEME_STORAGE_KEY = 'alltrails.theme-mode'
 
-/**
- * Get user initials (first 2 letters)
- */
-const getUserInitials = (fullName?: string, userName?: string): string => {
-  let name = fullName || userName || 'U'
-  // Handle null/undefined by using 'U'
-  if (!name || typeof name !== 'string') {
-    return 'U'
+const applyThemeMode = (mode: 'light' | 'dark', persist = true) => {
+  themeMode.value = mode
+
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme-mode', mode)
   }
-  // Remove spaces and get first 2 characters
-  const initials = name.replace(/\s+/g, '').substring(0, 2).toUpperCase()
-  return initials || 'U'
+
+  if (persist && typeof window !== 'undefined') {
+    window.localStorage.setItem(THEME_STORAGE_KEY, mode)
+  }
+}
+
+const toggleThemeMode = () => {
+  const nextMode = themeMode.value === 'dark' ? 'light' : 'dark'
+  applyThemeMode(nextMode)
+}
+
+const openNotifications = () => {
+  if (unreadNotifications.value > 0) {
+    uiStore.clearAllNotifications()
+    toast.info('Notifications cleared')
+    return
+  }
+
+  toast.info('No new notifications right now')
 }
 
 const logout = () => {
@@ -52,7 +66,6 @@ const closeUserMenu = () => {
   userMenuOpen.value = false
 }
 
-// Handle click outside to close user menu
 const handleClickOutside = (event: MouseEvent) => {
   if (userMenuRef.value && !userMenuRef.value.contains(event.target as Node)) {
     closeUserMenu()
@@ -60,6 +73,16 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 onMounted(() => {
+  if (typeof window !== 'undefined') {
+    const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY)
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const initialTheme = savedTheme === 'dark' || savedTheme === 'light'
+      ? savedTheme
+      : (systemPrefersDark ? 'dark' : 'light')
+
+    applyThemeMode(initialTheme, false)
+  }
+
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -71,65 +94,139 @@ const navItems = computed(() => {
   const items = [
     { to: '/', label: 'Home', route: 'Home' },
     { to: '/trails', label: 'Trails', route: 'TrailBrowse' },
-    { to: '/blog', label: 'Blog', route: 'BlogList' }
+    { to: '/shop', label: 'Shop', route: 'ShopBrowse' },
+    { to: '/blog', label: 'Blog', route: 'BlogList' },
   ]
 
   if (authStore.isAuthenticated) {
-    items.push(
-      { to: '/bookings', label: 'Bookings', route: 'BookingsList' }
-    )
+    items.push({ to: '/bookings', label: 'Bookings', route: 'BookingsList' })
   }
 
   return items
 })
+
+const isActiveRoute = (routeName: string) => {
+  if (routeName === 'ShopBrowse') {
+    return String(currentRoute.value || '').startsWith('Shop')
+  }
+
+  return currentRoute.value === routeName
+}
+
+const isCartRoute = computed(() =>
+  ['ShopCart', 'ShopCheckout', 'ShopPaymentProcessing', 'ShopConfirmation', 'ShopTracking'].includes(
+    String(currentRoute.value || '')
+  )
+)
 </script>
 
 <template>
   <div class="w-full">
-    <!-- Skip to main content link for accessibility -->
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-emerald-600 focus:text-white focus:rounded-lg focus:font-bold"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] brand-button"
     >
       Skip to main content
     </a>
-    <!-- Modern minimal navbar -->
-    <nav class="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100" role="navigation" aria-label="Main navigation">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <!-- Logo -->
-          <RouterLink to="/" class="flex items-center gap-3 group">
-            <div class="w-10 h-10 bg-gradient-to-br from-emerald-600 to-teal-500 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform shadow-md">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+    <nav class="glass-nav sticky top-0 z-50" role="navigation" aria-label="Main navigation">
+      <div class="layout-shell-wide">
+        <div class="flex min-h-16 items-center justify-between py-2 sm:min-h-[4.5rem]">
+          <RouterLink to="/" class="flex items-center gap-3 group" @click="closeMobileMenu">
+            <div class="brand-mark h-10 w-10 transform transition-transform group-hover:scale-[1.03] sm:h-11 sm:w-11">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
               </svg>
             </div>
-            <span class="text-2xl font-black bg-gradient-to-r from-emerald-900 to-teal-800 bg-clip-text text-transparent">
-              Step Up Adventures
-            </span>
+            <div>
+              <div class="brand-wordmark text-xl font-semibold leading-none sm:text-2xl">Stepup Adventures</div>
+              <div class="tone-muted mt-1 hidden text-[10px] uppercase tracking-[0.24em] sm:block">Trails across Kenya</div>
+            </div>
           </RouterLink>
 
-          <!-- Desktop Navigation -->
-          <div class="hidden md:flex items-center gap-1">
+          <div class="hidden md:flex items-center gap-0.5">
             <RouterLink
               v-for="item in navItems"
               :key="item.to"
               :to="item.to"
-              class="px-4 py-2 rounded-lg text-gray-700 font-medium hover:bg-emerald-50 hover:text-emerald-900 transition-all"
-              :class="{
-                'bg-emerald-100 text-emerald-900 font-bold': currentRoute === item.route
-              }"
+              class="nav-link"
+              :class="{ 'nav-link-active': isActiveRoute(item.route) }"
             >
               {{ item.label }}
             </RouterLink>
           </div>
 
-          <!-- Desktop User Section -->
-          <div class="hidden md:flex items-center gap-4">
+          <div class="hidden md:flex items-center gap-3">
+            <button
+              type="button"
+              class="icon-control-button relative"
+              aria-label="Open notifications"
+              title="Notifications"
+              @click="openNotifications"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span
+                v-if="unreadNotifications"
+                class="count-pill absolute -right-1.5 -top-1.5"
+              >
+                {{ unreadNotifications > 9 ? '9+' : unreadNotifications }}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="icon-control-button"
+              :aria-label="themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+              :title="themeMode === 'dark' ? 'Light mode' : 'Dark mode'"
+              @click="toggleThemeMode"
+            >
+              <svg
+                v-if="themeMode === 'dark'"
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-[18px] w-[18px]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m7-9h2M3 12H1m16.95 6.95l1.4 1.4M4.65 4.65l1.4 1.4m11.9-1.4l-1.4 1.4M6.05 17.95l-1.4 1.4M12 7a5 5 0 100 10 5 5 0 000-10z" />
+              </svg>
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-[18px] w-[18px]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9 9 0 1020.354 15.354z" />
+              </svg>
+            </button>
+
+            <RouterLink
+              to="/shop/cart"
+              class="icon-control-button relative"
+              :class="isCartRoute ? 'icon-control-button-active' : ''"
+              aria-label="Open cart"
+              title="Cart"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h2l.8 2m0 0L7 14h10l2-8H5.8M7 14l-1 2h12M10 20a1 1 0 100 2 1 1 0 000-2zm8 0a1 1 0 100 2 1 1 0 000-2z" />
+              </svg>
+              <span
+                v-if="cartCount"
+                class="count-pill absolute -right-1.5 -top-1.5"
+              >
+                {{ cartCount }}
+              </span>
+            </RouterLink>
             <div v-if="authStore.isAuthenticated" ref="userMenuRef" class="relative">
               <button
                 @click="toggleUserMenu"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer focus:outline-2 focus:outline-emerald-500 focus:outline-offset-2"
+                class="flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2 transition-colors hover:bg-[color:var(--color-surface-control)]"
                 aria-label="User menu"
                 :aria-expanded="userMenuOpen"
               >
@@ -139,24 +236,25 @@ const navItems = computed(() => {
                   size="md"
                   class="flex-shrink-0"
                 />
-                <span class="font-medium text-gray-900">{{ authStore.user?.full_name || authStore.user?.name }}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <span class="tone-heading font-medium">{{ authStore.user?.full_name || authStore.user?.name }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="tone-muted h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
               <div
                 v-if="userMenuOpen"
-                class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2"
+                class="absolute right-0 mt-2 w-60 glass-panel-strong rounded-2xl z-50 py-2"
                 role="menu"
                 aria-orientation="vertical"
               >
-                <div class="px-4 py-2 text-xs text-gray-500 font-medium border-b border-gray-100">
+                <div class="tone-muted border-b border-[color:var(--color-border-soft)] px-4 py-2 text-xs font-medium">
                   {{ authStore.user?.email }}
                 </div>
                 <RouterLink
                   to="/profile"
                   @click="closeUserMenu"
-                  class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-900 transition-colors"
+                  class="soft-menu-item mx-2"
+                  :class="{ 'soft-menu-item-active': isActiveRoute('Profile') }"
                   role="menuitem"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -166,7 +264,7 @@ const navItems = computed(() => {
                 </RouterLink>
                 <button
                   @click="logout"
-                  class="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors text-left"
+                  class="surface-danger-subtle mx-2 mt-1 flex w-[calc(100%-1rem)] items-center gap-2 rounded-2xl px-4 py-3 text-left transition-colors hover:brightness-[1.04]"
                   role="menuitem"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -176,112 +274,141 @@ const navItems = computed(() => {
                 </button>
               </div>
             </div>
-            <RouterLink to="/login" class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105">
+            <RouterLink v-else to="/login" class="brand-button px-5 py-2.5 text-sm">
               Login
             </RouterLink>
           </div>
 
-          <!-- Mobile menu button -->
           <button
             @click="mobileMenuOpen = !mobileMenuOpen"
-            class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-2 focus:outline-emerald-500 focus:outline-offset-2"
+            class="icon-control-button md:hidden"
             :aria-label="mobileMenuOpen ? 'Close menu' : 'Open menu'"
             :aria-expanded="mobileMenuOpen"
             aria-controls="mobile-menu"
           >
-            <svg v-if="!mobileMenuOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg v-if="!mobileMenuOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <!-- Mobile Menu -->
         <div
           v-if="mobileMenuOpen"
           id="mobile-menu"
-          class="md:hidden border-t border-gray-100 py-4 animate-in slide-in-from-top"
+          class="md:hidden pb-4 animate-in slide-in-from-top"
           role="menu"
         >
-          <!-- Mobile User Info -->
-          <div v-if="authStore.isAuthenticated" class="px-4 py-3 mb-4">
-            <div class="flex items-center gap-3 mb-3 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-3">
-              <Avatar
-                :label="authStore.user?.full_name || authStore.user?.name || 'User'"
-                :image="authStore.user?.user_image"
-                size="lg"
-                class="flex-shrink-0"
-              />
-              <div class="flex-1 min-w-0">
-                <div class="font-bold text-gray-900 truncate">{{ authStore.user?.full_name || authStore.user?.name }}</div>
-                <div class="text-sm text-gray-600 truncate">{{ authStore.user?.email }}</div>
+          <div class="glass-panel-strong rounded-[1.5rem] p-3">
+            <div v-if="authStore.isAuthenticated" class="px-2 py-2 mb-2">
+              <div class="flex items-center gap-3 rounded-[1.25rem] surface-muted p-3">
+                <Avatar
+                  :label="authStore.user?.full_name || authStore.user?.name || 'User'"
+                  :image="authStore.user?.user_image"
+                  size="lg"
+                  class="flex-shrink-0"
+                />
+                <div class="flex-1 min-w-0">
+                  <div class="tone-heading truncate font-medium">{{ authStore.user?.full_name || authStore.user?.name }}</div>
+                  <div class="tone-body truncate text-sm">{{ authStore.user?.email }}</div>
+                </div>
               </div>
-            </div>
-            <!-- Mobile User Menu Items -->
-            <div class="space-y-1">
               <RouterLink
                 to="/profile"
                 @click="closeMobileMenu"
-                class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-900 transition-colors rounded-lg"
-                :class="{
-                  'bg-emerald-100 text-emerald-900 font-bold': currentRoute === 'Profile'
-                }"
+                class="soft-menu-item mt-2"
+                :class="{ 'soft-menu-item-active': isActiveRoute('Profile') }"
                 role="menuitem"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 My Profile
               </RouterLink>
             </div>
-          </div>
 
-          <!-- Mobile Nav Items -->
-          <div class="space-y-1 px-2">
+            <div class="space-y-1 px-1">
+              <RouterLink
+                v-for="item in navItems"
+                :key="item.to"
+                :to="item.to"
+                @click="closeMobileMenu"
+                class="soft-menu-item"
+                :class="{ 'soft-menu-item-active': isActiveRoute(item.route) }"
+                role="menuitem"
+                :aria-current="isActiveRoute(item.route) ? 'page' : undefined"
+              >
+                {{ item.label }}
+              </RouterLink>
+            </div>
+
             <RouterLink
-              v-for="item in navItems"
-              :key="item.to"
-              :to="item.to"
+              to="/shop/cart"
               @click="closeMobileMenu"
-              class="block px-4 py-3 rounded-lg text-gray-700 font-medium hover:bg-emerald-50 hover:text-emerald-900 transition-all focus:outline-2 focus:outline-emerald-500 focus:outline-offset-2"
-              :class="{
-                'bg-emerald-100 text-emerald-900 font-bold': currentRoute === item.route
-              }"
+              class="soft-menu-item mt-3"
+              :class="{ 'soft-menu-item-active': isCartRoute }"
               role="menuitem"
-              :aria-current="currentRoute === item.route ? 'page' : undefined"
             >
-              {{ item.label }}
+              Cart
+              <span
+                v-if="cartCount"
+                class="count-pill ml-auto min-w-6 px-2 text-xs"
+              >
+                {{ cartCount }}
+              </span>
             </RouterLink>
-          </div>
 
-          <!-- Mobile Auth Button -->
-          <div class="px-2 mt-4 pt-4 border-t border-gray-100">
             <button
-              v-if="authStore.isAuthenticated"
-              @click="logout"
-              class="w-full px-4 py-3 bg-red-50 text-red-600 font-bold rounded-lg hover:bg-red-100 transition-all flex items-center justify-center gap-2"
+              type="button"
+              class="soft-menu-item mt-2 w-full text-left"
+              role="menuitem"
+              @click="openNotifications"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
+              Notifications
+              <span
+                v-if="unreadNotifications"
+                class="count-pill ml-auto min-w-6 px-2 text-xs"
+              >
+                {{ unreadNotifications > 9 ? '9+' : unreadNotifications }}
+              </span>
             </button>
-            <RouterLink
-              v-else
-              to="/login"
-              @click="closeMobileMenu"
-              class="block w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all text-center shadow-md"
+
+            <button
+              type="button"
+              class="soft-menu-item mt-1 w-full text-left"
+              role="menuitem"
+              @click="toggleThemeMode"
             >
-              Login
-            </RouterLink>
+              {{ themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode' }}
+            </button>
+
+            <div class="mt-4 border-t border-[color:var(--color-border-soft)] px-1 pt-4">
+              <button
+                v-if="authStore.isAuthenticated"
+                @click="logout"
+                class="surface-danger-subtle flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 font-medium transition-all hover:brightness-[1.04]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Logout
+              </button>
+              <RouterLink
+                v-else
+                to="/login"
+                @click="closeMobileMenu"
+                class="brand-button w-full"
+              >
+                Login
+              </RouterLink>
+            </div>
           </div>
         </div>
       </div>
     </nav>
 
-    <!-- Page content slot -->
     <main id="main-content" tabindex="-1">
       <slot />
     </main>
@@ -304,7 +431,6 @@ const navItems = computed(() => {
   animation: slide-in-from-top 200ms ease-out;
 }
 
-/* Screen reader only class */
 .sr-only {
   position: absolute;
   width: 1px;

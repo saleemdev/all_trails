@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue'
 import type { Trail } from '../../../types/index'
 
-defineProps<{
+const props = defineProps<{
   trail: Trail
 }>()
 
@@ -9,24 +10,50 @@ defineEmits<{
   click: []
 }>()
 
-const getDifficultyEmoji = (level: string) => {
-  const emojis: Record<string, string> = {
-    Easy: '🟢',
-    Moderate: '🟡',
-    Hard: '🟠',
-    Expert: '🔴',
+const imageLoadFailed = ref(false)
+
+const featuredImageSrc = computed(() => {
+  const raw = (props.trail.featured_image || '').trim()
+  if (!raw) {
+    return ''
   }
-  return emojis[level] || '⚪'
+
+  if (/^https?:\/\//i.test(raw) || raw.startsWith('/')) {
+    return raw
+  }
+
+  return `/${raw.replace(/^\.?\//, '')}`
+})
+
+const shouldRenderImage = computed(() => !!featuredImageSrc.value && !imageLoadFailed.value)
+
+watch(
+  () => props.trail.featured_image,
+  () => {
+    imageLoadFailed.value = false
+  }
+)
+
+const handleImageError = () => {
+  imageLoadFailed.value = true
 }
 
-const getDifficultyColor = (level: string) => {
+const getDifficultyTone = (level: string) => {
   const colors: Record<string, string> = {
-    Easy: 'bg-green-100 text-green-800 border-green-300',
-    Moderate: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    Hard: 'bg-orange-100 text-orange-800 border-orange-300',
-    Expert: 'bg-red-100 text-red-800 border-red-300',
+    Easy: 'trail-overlay-chip--easy',
+    Moderate: 'trail-overlay-chip--moderate',
+    Hard: 'trail-overlay-chip--hard',
+    Expert: 'trail-overlay-chip--expert',
   }
-  return colors[level] || 'bg-gray-100 text-gray-800 border-gray-300'
+  return colors[level] || 'trail-overlay-chip--neutral'
+}
+
+const getAvailabilityTone = (spots: number) => {
+  if (spots > 0) {
+    return 'trail-overlay-chip--available'
+  }
+
+  return 'trail-overlay-chip--soldout'
 }
 
 const formatPrice = (price: number) => {
@@ -36,129 +63,132 @@ const formatPrice = (price: number) => {
     minimumFractionDigits: 0,
   }).format(price)
 }
+
+const formatTrailDate = (value: string) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return ''
+  }
+
+  return date.toLocaleDateString('en-KE', { month: 'short', day: 'numeric' })
+}
 </script>
 
 <template>
   <div
-    class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col cursor-pointer focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2"
+    class="group glass-panel-strong soft-card-hover h-full overflow-hidden rounded-[1.05rem] border border-white/60 focus-within:ring-2 focus-within:ring-white/70 focus-within:ring-offset-2"
     @click="$emit('click')"
     role="article"
-    :aria-label="`Trail: ${trail.title} in ${trail.location}`"
+    :aria-label="`Trail: ${props.trail.title} in ${props.trail.location}`"
     tabindex="0"
     @keydown.enter="$emit('click')"
     @keydown.space.prevent="$emit('click')"
   >
-    <!-- Card Image -->
-    <div class="relative h-56 bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 overflow-hidden">
-      <!-- Background Pattern -->
-      <div class="absolute inset-0 opacity-20">
-        <div class="absolute top-0 left-0 w-full h-full"
-             style="background-image: url('data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M0 40L40 0H20L0 20M40 40V20L20 40\'/%3E%3C/g%3E%3C/svg%3E');"></div>
+    <div class="relative h-32 overflow-hidden bg-slate-900 sm:h-[8.7rem]">
+      <div class="absolute inset-0 hero-overlay"></div>
+      <div class="absolute inset-0 hero-grid opacity-35"></div>
+
+      <img
+        v-if="shouldRenderImage"
+        :src="featuredImageSrc"
+        :alt="props.trail.title"
+        class="h-full w-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-[1.03]"
+        loading="lazy"
+        decoding="async"
+        @error="handleImageError"
+      />
+      <div v-else class="absolute inset-0 flex items-center justify-center text-white/70">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 19h18M5 19l5-8 3 4 3-6 3 10" />
+        </svg>
       </div>
 
-      <!-- Icon -->
-      <div class="absolute inset-0 flex items-center justify-center">
-        <div class="text-9xl opacity-60 transform group-hover:scale-110 transition-transform duration-500">
-          🏔️
+      <div class="absolute right-2 top-2">
+        <div
+          class="trail-overlay-chip"
+          :class="getDifficultyTone(props.trail.difficulty_level)"
+        >
+          <span class="trail-overlay-dot" aria-hidden="true" />
+          {{ props.trail.difficulty_level }}
         </div>
       </div>
 
-      <!-- Difficulty Badge -->
-      <div class="absolute top-4 right-4">
+      <div class="absolute bottom-2 left-2">
         <div
-          class="px-3 py-1.5 rounded-full font-bold text-sm shadow-lg border-2 backdrop-blur-sm"
-          :class="getDifficultyColor(trail.difficulty_level)"
+          class="trail-overlay-chip"
+          :class="getAvailabilityTone(props.trail.available_spots)"
         >
-          {{ getDifficultyEmoji(trail.difficulty_level) }} {{ trail.difficulty_level }}
-        </div>
-      </div>
-
-      <!-- Availability Badge -->
-      <div class="absolute bottom-4 left-4">
-        <div
-          v-if="trail.available_spots > 0"
-          class="px-3 py-1.5 bg-emerald-500 text-white rounded-full font-bold text-sm shadow-lg backdrop-blur-sm"
-        >
-          {{ trail.available_spots }} spots left
-        </div>
-        <div
-          v-else
-          class="px-3 py-1.5 bg-red-500 text-white rounded-full font-bold text-sm shadow-lg backdrop-blur-sm"
-        >
-          Fully Booked
+          {{ props.trail.available_spots > 0 ? `${props.trail.available_spots} spots` : 'Booked out' }}
         </div>
       </div>
     </div>
 
-    <!-- Card Content -->
-    <div class="p-6 flex flex-col flex-1">
-      <!-- Title -->
-      <h3 class="text-2xl font-black text-gray-900 mb-2 group-hover:text-emerald-700 transition-colors">
-        {{ trail.title }}
+    <div class="flex h-full flex-col p-3">
+      <h3 class="trail-card-title text-[14px] font-semibold leading-5 text-slate-900 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
+        {{ props.trail.title }}
       </h3>
 
-      <!-- Location -->
-      <div class="flex items-center gap-2 text-gray-600 mb-6">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-        <span class="font-medium">{{ trail.location }}</span>
+      <div class="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-slate-500">
+        <div class="inline-flex min-w-0 items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0 brand-text" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          </svg>
+          <span class="truncate text-[11px] font-medium text-slate-600">{{ props.trail.location }}</span>
+        </div>
+        <span v-if="formatTrailDate(props.trail.scheduled_date)" class="shrink-0 text-[10px]">{{ formatTrailDate(props.trail.scheduled_date) }}</span>
       </div>
 
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-3 gap-4 pb-6 mb-6 border-b-2 border-gray-100">
-        <!-- Distance -->
-        <div class="flex flex-col items-center">
-          <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-2 shadow-md">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-            </svg>
+      <ul class="mt-2 grid grid-cols-3 gap-1">
+        <li class="trail-metric-chip">
+          <div class="trail-metric-value">
+            <span class="trail-metric-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7" />
+              </svg>
+            </span>
+            <span>{{ props.trail.distance_km }}km</span>
           </div>
-          <span class="text-sm font-bold text-gray-900">{{ trail.distance_km }} km</span>
-          <span class="text-xs text-gray-500">Distance</span>
-        </div>
-
-        <!-- Duration -->
-        <div class="flex flex-col items-center">
-          <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-2 shadow-md">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <p class="trail-metric-label">Distance</p>
+        </li>
+        <li class="trail-metric-chip">
+          <div class="trail-metric-value">
+            <span class="trail-metric-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </span>
+            <span>{{ props.trail.duration_hours }}h</span>
           </div>
-          <span class="text-sm font-bold text-gray-900">{{ trail.duration_hours }}h</span>
-          <span class="text-xs text-gray-500">Duration</span>
-        </div>
-
-        <!-- Elevation -->
-        <div class="flex flex-col items-center">
-          <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mb-2 shadow-md">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
+          <p class="trail-metric-label">Duration</p>
+        </li>
+        <li class="trail-metric-chip">
+          <div class="trail-metric-value">
+            <span class="trail-metric-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8" />
+              </svg>
+            </span>
+            <span>{{ props.trail.elevation_gain_m }}m</span>
           </div>
-          <span class="text-sm font-bold text-gray-900">{{ trail.elevation_gain_m }}m</span>
-          <span class="text-xs text-gray-500">Elevation</span>
-        </div>
-      </div>
+          <p class="trail-metric-label">Elevation</p>
+        </li>
+      </ul>
 
-      <!-- Footer -->
-      <div class="flex justify-between items-center mt-auto">
-        <!-- Price -->
-        <div class="flex flex-col">
-          <span class="text-xs text-gray-500 font-medium">From</span>
-          <span class="text-2xl font-black text-emerald-700">
-            {{ formatPrice(trail.price_kshs) }}
-          </span>
+      <div class="mt-2.5 flex items-end justify-between gap-2">
+        <div>
+          <p class="text-[9px] uppercase tracking-[0.08em] text-slate-500">From</p>
+          <p class="brand-text text-[1rem] font-semibold leading-tight">{{ formatPrice(props.trail.price_kshs) }}</p>
         </div>
 
-        <!-- View Button -->
         <button
-          class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-md group-hover:shadow-lg transform group-hover:scale-105 focus:outline-2 focus:outline-emerald-500 focus:outline-offset-2"
-          :aria-label="`View details for ${trail.title}`"
+          class="inline-flex items-center gap-1 rounded-[0.68rem] bg-[color:var(--color-primary)] px-2.5 py-1.5 text-[11px] font-medium text-white transition-all hover:brightness-[1.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary-ring)]"
+          :aria-label="`View details for ${props.trail.title}`"
           @click.stop="$emit('click')"
         >
-          View Trail
+          <span>View</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
     </div>
@@ -166,5 +196,5 @@ const formatPrice = (price: number) => {
 </template>
 
 <style scoped>
-/* Minimal custom styles - leveraging Tailwind utilities */
+/* Styling is handled through global design tokens */
 </style>
