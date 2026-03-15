@@ -695,6 +695,16 @@ select:focus {
   color: var(--color-text-tertiary);
 }
 
+.soft-input:-webkit-autofill,
+.soft-input:-webkit-autofill:hover,
+.soft-input:-webkit-autofill:focus,
+.soft-input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--color-text-primary);
+  caret-color: var(--color-text-primary);
+  box-shadow: 0 0 0 1000px var(--color-surface-control) inset;
+  transition: background-color 9999s ease-out 0s;
+}
+
 .soft-kicker {
   display: inline-flex;
   align-items: center;

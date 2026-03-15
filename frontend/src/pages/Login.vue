@@ -46,22 +46,18 @@
               <label for="login_email" class="tone-kicker mb-1.5 block text-[10px]">
                 Email or Username
               </label>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="tone-muted h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <input
-                  id="login_email"
-                  v-model="email"
-                  type="text"
-                  autocomplete="username"
-                  required
-                  class="soft-input h-10 w-full pl-10 pr-3.5 text-[14px]"
-                  placeholder="jane@example.com"
-                />
-              </div>
+              <input
+                id="login_email"
+                v-model="email"
+                name="usr"
+                type="text"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                required
+                class="soft-input h-10 w-full px-3.5 text-[14px] leading-[1.2]"
+                placeholder="jane@example.com"
+              />
             </div>
 
             <div>
@@ -69,24 +65,20 @@
                 Password
               </label>
               <div class="relative">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="tone-muted h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
                 <input
                   id="login_password"
                   v-model="password"
+                  name="pwd"
                   :type="showPassword ? 'text' : 'password'"
                   autocomplete="current-password"
                   required
-                  class="soft-input h-10 w-full pl-10 pr-10 text-[14px]"
+                  class="soft-input h-10 w-full px-3.5 pr-10 text-[14px] leading-[1.2]"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   @click="showPassword = !showPassword"
-                  class="tone-muted absolute inset-y-0 right-0 flex items-center pr-3.5 transition-colors hover:text-[color:var(--color-text-primary)]"
+                  class="tone-muted absolute inset-y-0 right-0 z-10 flex items-center px-3 transition-colors hover:text-[color:var(--color-text-primary)]"
                   :aria-label="showPassword ? 'Hide password' : 'Show password'"
                 >
                   <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
