@@ -66,6 +66,12 @@ const createCustomIcon = (difficulty: string) => {
   })
 }
 
+const buildGoogleMapsPlaceUrl = (trail: Trail) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${trail.coordinates!.lat},${trail.coordinates!.lng}`)}`
+
+const buildGoogleMapsDirectionsUrl = (trail: Trail) =>
+  `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${trail.coordinates!.lat},${trail.coordinates!.lng}`)}&travelmode=driving`
+
 const initializeMap = () => {
   if (!mapContainer.value) return
 
@@ -119,6 +125,50 @@ const updateMarkers = () => {
         <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">⏰ ${escapeHtml(trail.start_time)}</p>
         <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">💰 ${new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0 }).format(trail.price_kshs)}</p>
         <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">👥 ${trail.available_spots} spots available</p>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+          <a
+            href="${escapeHtml(buildGoogleMapsPlaceUrl(trail))}"
+            target="_blank"
+            rel="noreferrer"
+            style="
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              padding: 7px 12px;
+              background-color: #0f766e;
+              color: white;
+              border-radius: 6px;
+              text-decoration: none;
+              font-weight: 600;
+              font-size: 14px;
+              width: 100%;
+              box-sizing: border-box;
+            "
+          >
+            Open in Google Maps
+          </a>
+          <a
+            href="${escapeHtml(buildGoogleMapsDirectionsUrl(trail))}"
+            target="_blank"
+            rel="noreferrer"
+            style="
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              padding: 7px 12px;
+              background-color: #e2e8f0;
+              color: #0f172a;
+              border-radius: 6px;
+              text-decoration: none;
+              font-weight: 600;
+              font-size: 14px;
+              width: 100%;
+              box-sizing: border-box;
+            "
+          >
+            Get directions
+          </a>
+        </div>
         <button 
           data-role="view-trail-details"
           class="trail-map-popup-button"

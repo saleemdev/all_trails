@@ -20,10 +20,24 @@
   "trail_snapshot_section",
   "trail_title",
   "trail_location",
+  "trail_county",
   "trail_scheduled_date",
+  "trail_start_time",
+  "trail_end_time",
   "trail_meeting_point",
+  "trail_meeting_time",
+  "trail_difficulty_level",
+  "trail_type",
+  "trail_distance_km",
+  "trail_duration_hours",
+  "trail_elevation_gain_m",
+  "trail_altitude_max_m",
+  "trail_fitness_level",
+  "trail_water_requirement_litres",
+  "trail_terrain_summary",
   "trail_transport_notes",
   "trail_packing_list",
+  "trail_safety_notes",
   "pricing_section",
   "spots_booked",
   "base_price",
@@ -153,15 +167,93 @@
    "read_only": 1
   },
   {
+   "fieldname": "trail_county",
+   "fieldtype": "Data",
+   "label": "Trail County",
+   "read_only": 1
+  },
+  {
    "fieldname": "trail_scheduled_date",
    "fieldtype": "Date",
    "label": "Trail Scheduled Date",
    "read_only": 1
   },
   {
+   "fieldname": "trail_start_time",
+   "fieldtype": "Time",
+   "label": "Trail Start Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_end_time",
+   "fieldtype": "Time",
+   "label": "Trail End Time",
+   "read_only": 1
+  },
+  {
    "fieldname": "trail_meeting_point",
    "fieldtype": "Data",
    "label": "Trail Meeting Point",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_meeting_time",
+   "fieldtype": "Time",
+   "label": "Trail Meeting Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_difficulty_level",
+   "fieldtype": "Data",
+   "label": "Trail Difficulty Level",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_type",
+   "fieldtype": "Data",
+   "label": "Trail Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_distance_km",
+   "fieldtype": "Float",
+   "label": "Trail Distance (KM)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_duration_hours",
+   "fieldtype": "Float",
+   "label": "Trail Duration (Hours)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_elevation_gain_m",
+   "fieldtype": "Int",
+   "label": "Trail Elevation Gain (M)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_altitude_max_m",
+   "fieldtype": "Int",
+   "label": "Trail Altitude Max (M)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_fitness_level",
+   "fieldtype": "Data",
+   "label": "Trail Fitness Level",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_water_requirement_litres",
+   "fieldtype": "Float",
+   "label": "Trail Water Requirement (Litres)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_terrain_summary",
+   "fieldtype": "Small Text",
+   "label": "Trail Terrain Summary",
    "read_only": 1
   },
   {
@@ -174,6 +266,12 @@
    "fieldname": "trail_packing_list",
    "fieldtype": "Small Text",
    "label": "Trail Packing List",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_safety_notes",
+   "fieldtype": "Small Text",
+   "label": "Trail Safety Notes",
    "read_only": 1
   },
   {

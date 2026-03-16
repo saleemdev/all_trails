@@ -133,6 +133,23 @@ const hasMapCoordinates = computed(() => {
   const lng = trail.value?.coordinates?.lng
   return typeof lat === 'number' && typeof lng === 'number' && Number.isFinite(lat) && Number.isFinite(lng)
 })
+const mapQuery = computed(() => {
+  if (!hasMapCoordinates.value) {
+    return ''
+  }
+
+  return `${trail.value?.coordinates?.lat},${trail.value?.coordinates?.lng}`
+})
+const googleMapsPlaceUrl = computed(() =>
+  hasMapCoordinates.value
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery.value)}`
+    : ''
+)
+const googleMapsDirectionsUrl = computed(() =>
+  hasMapCoordinates.value
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapQuery.value)}&travelmode=driving`
+    : ''
+)
 const splitLines = (value?: string) =>
   String(value || '')
     .split('\n')
@@ -332,6 +349,24 @@ const loadWeather = async (id: string) => {
               <span v-if="hasMapCoordinates" class="soft-badge soft-badge--neutral">
                 {{ trail.coordinates?.lat?.toFixed(6) }}, {{ trail.coordinates?.lng?.toFixed(6) }}
               </span>
+            </div>
+            <div v-if="hasMapCoordinates" class="flex flex-wrap gap-3 mb-4">
+              <a
+                :href="googleMapsPlaceUrl"
+                target="_blank"
+                rel="noreferrer"
+                class="brand-button inline-flex items-center justify-center px-5 py-3"
+              >
+                Open in Google Maps
+              </a>
+              <a
+                :href="googleMapsDirectionsUrl"
+                target="_blank"
+                rel="noreferrer"
+                class="soft-button-secondary inline-flex items-center justify-center px-5 py-3"
+              >
+                Get directions
+              </a>
             </div>
             <TrailMap v-if="hasMapCoordinates" :trails="trailMapItems" @trail-click="view => router.push({ name: 'TrailDetail', params: { id: view.id } })" />
             <div v-else class="surface-muted rounded-[1rem] p-5 text-sm tone-body">

@@ -8,6 +8,7 @@ import { apiService } from '../../services/api'
 import { getMpesaProgressModel } from '../../utils/mpesaStatus'
 import { isValidKenyanMpesaPhone, normalizeKenyanMpesaPhone } from '../../utils/payments'
 import type { TrailWeather } from '../../types'
+import TrailWeatherHighlight from '../../components/features/trails/TrailWeatherHighlight.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -106,6 +107,27 @@ const formatPrice = (price: number) => {
   }).format(price)
 }
 
+const formatTrailTime = (timeValue?: string) => {
+  if (!timeValue) {
+    return 'TBA'
+  }
+
+  const [hours, minutes] = String(timeValue).split(':').map((part) => Number(part))
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+    return timeValue
+  }
+
+  const formattedHours = ((hours + 11) % 12) + 1
+  const period = hours >= 12 ? 'PM' : 'AM'
+  return `${formattedHours}:${String(minutes).padStart(2, '0')} ${period}`
+}
+
+const splitLines = (value?: string) =>
+  String(value || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+
 const paymentTimeline = computed(() => {
   const events: Array<{ label: string; detail: string }> = [
     {
@@ -168,14 +190,6 @@ const getPaymentStatusColor = (status: string) => {
   }
   return colors[status] || 'text-gray-700'
 }
-
-const weatherRiskPillClass = computed(() => {
-  const risk = weather.value?.risk_level
-  if (risk === 'good') return 'info-pill info-pill--risk-good'
-  if (risk === 'caution') return 'info-pill info-pill--risk-caution'
-  if (risk === 'risky') return 'info-pill info-pill--risk-risky'
-  return 'soft-badge soft-badge--neutral'
-})
 
 const clearPolling = () => {
   if (pollingHandle) {
@@ -376,43 +390,69 @@ onUnmounted(() => {
           </div>
         </section>
 
+        <TrailWeatherHighlight :weather="weather" :loading="weatherLoading" />
+
         <section class="surface-card-lg">
           <p class="app-section-kicker mb-2">Reservation snapshot</p>
           <h2 class="text-2xl brand-text-strong font-display font-semibold mb-4">Reservation details</h2>
-          <div class="space-y-3">
-            <article class="surface-muted rounded-[1rem] p-4 flex items-start gap-3">
-              <span class="soft-icon-tile soft-icon-tile--sage !w-9 !h-9 shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </span>
-              <div>
-                <p class="text-sm font-semibold tone-heading mb-1">Trail day</p>
-                <p class="text-sm tone-body mb-0">{{ formatDate(booking.trail_scheduled_date || booking.booking_date) }}</p>
-              </div>
+          <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <article class="surface-muted rounded-[1rem] p-4">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Trail day</p>
+              <p class="text-base font-semibold text-slate-900 mb-1">{{ formatDate(booking.trail_scheduled_date || booking.booking_date) }}</p>
+              <p class="text-sm tone-body mb-0">{{ formatTrailTime(booking.trail_start_time) }} to {{ formatTrailTime(booking.trail_end_time) }}</p>
             </article>
-            <article class="surface-muted rounded-[1rem] p-4 flex items-start gap-3">
-              <span class="soft-icon-tile soft-icon-tile--mist !w-9 !h-9 shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
-                </svg>
-              </span>
-              <div>
-                <p class="text-sm font-semibold tone-heading mb-1">Trail and spots</p>
-                <p class="text-sm tone-body mb-0">{{ bookingTrailTitle }} · {{ booking.spots_booked }} {{ booking.spots_booked === 1 ? 'spot' : 'spots' }}</p>
-              </div>
+
+            <article class="surface-muted rounded-[1rem] p-4">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Meet-up</p>
+              <p class="text-base font-semibold text-slate-900 mb-1">{{ booking.trail_meeting_point || booking.trail_location || bookingTrailTitle }}</p>
+              <p class="text-sm tone-body mb-0">{{ formatTrailTime(booking.trail_meeting_time || booking.trail_start_time) }}</p>
             </article>
-            <article class="surface-muted rounded-[1rem] p-4 flex items-start gap-3">
-              <span class="soft-icon-tile soft-icon-tile--brass !w-9 !h-9 shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8c-1.105 0-2 .67-2 1.5S10.895 11 12 11s2 .67 2 1.5-0.895 1.5-2 1.5m0-6v6m0 0v2m0-10V4" />
-                </svg>
-              </span>
-              <div>
-                <p class="text-sm font-semibold tone-heading mb-1">Amount and status</p>
-                <p class="text-sm tone-body mb-0">{{ formatPrice(booking.total_price) }} · {{ booking.payment_status }}</p>
-              </div>
+
+            <article class="surface-muted rounded-[1rem] p-4">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Route profile</p>
+              <p class="text-base font-semibold text-slate-900 mb-1">
+                <span v-if="booking.trail_distance_km">{{ booking.trail_distance_km }} km</span>
+                <span v-else>Route details</span>
+                <span v-if="booking.trail_duration_hours"> · {{ booking.trail_duration_hours }} hrs</span>
+              </p>
+              <p class="text-sm tone-body mb-0">
+                <span v-if="booking.trail_elevation_gain_m">{{ booking.trail_elevation_gain_m }} m gain</span>
+                <span v-else>Elevation guidance unavailable</span>
+                <span v-if="booking.trail_altitude_max_m"> · {{ booking.trail_altitude_max_m }} m high point</span>
+              </p>
             </article>
+
+            <article class="surface-muted rounded-[1rem] p-4">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Difficulty and fit</p>
+              <p class="text-base font-semibold text-slate-900 mb-1">
+                {{ booking.trail_difficulty_level || 'Trail difficulty' }}
+                <span v-if="booking.trail_type"> · {{ booking.trail_type }}</span>
+              </p>
+              <p class="text-sm tone-body mb-0">{{ booking.trail_fitness_level || 'Pace guidance unavailable' }}</p>
+            </article>
+
+            <article class="surface-muted rounded-[1rem] p-4">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Reservation and amount</p>
+              <p class="text-base font-semibold text-slate-900 mb-1">{{ booking.spots_booked }} {{ booking.spots_booked === 1 ? 'spot' : 'spots' }}</p>
+              <p class="text-sm tone-body mb-0">{{ formatPrice(booking.total_price) }} · {{ booking.payment_status }}</p>
+            </article>
+
+            <article class="surface-muted rounded-[1rem] p-4">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Location and prep</p>
+              <p class="text-base font-semibold text-slate-900 mb-1">
+                {{ booking.trail_location || bookingTrailTitle }}
+                <span v-if="booking.trail_county"> · {{ booking.trail_county }}</span>
+              </p>
+              <p class="text-sm tone-body mb-0">
+                <span v-if="booking.trail_water_requirement_litres">Carry {{ booking.trail_water_requirement_litres }} L water</span>
+                <span v-else>See logistics and notes below</span>
+              </p>
+            </article>
+          </div>
+
+          <div v-if="booking.trail_terrain_summary" class="mt-4 surface-card-muted">
+            <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Terrain summary</p>
+            <p class="text-sm tone-body mb-0">{{ booking.trail_terrain_summary }}</p>
           </div>
         </section>
 
@@ -511,14 +551,15 @@ onUnmounted(() => {
           </div>
         </section>
 
-        <section v-if="booking.trail_meeting_point || booking.trail_transport_notes || booking.trail_packing_list" class="surface-card-lg">
+        <section v-if="booking.trail_meeting_point || booking.trail_transport_notes || booking.trail_packing_list || booking.trail_safety_notes" class="surface-card-lg">
           <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
             <h2 class="text-xl font-semibold text-slate-900 mb-0">Trail logistics</h2>
           </div>
           <div class="grid gap-3 sm:grid-cols-2">
             <article v-if="booking.trail_meeting_point" class="surface-muted rounded-[1rem] p-3.5">
               <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Meeting point</p>
-              <p class="text-sm font-semibold text-slate-900 mb-0">{{ booking.trail_meeting_point }}</p>
+              <p class="text-sm font-semibold text-slate-900 mb-1">{{ booking.trail_meeting_point }}</p>
+              <p v-if="booking.trail_meeting_time" class="text-sm text-slate-700 mb-0">{{ formatTrailTime(booking.trail_meeting_time) }}</p>
             </article>
             <article v-if="booking.trail_transport_notes" class="surface-muted rounded-[1rem] p-3.5">
               <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Transport notes</p>
@@ -526,7 +567,13 @@ onUnmounted(() => {
             </article>
             <article v-if="booking.trail_packing_list" class="surface-muted rounded-[1rem] p-3.5 sm:col-span-2">
               <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Packing list</p>
-              <p class="text-sm text-slate-700 mb-0 whitespace-pre-line">{{ booking.trail_packing_list }}</p>
+              <div class="flex flex-wrap gap-2">
+                <span v-for="item in splitLines(booking.trail_packing_list)" :key="item" class="soft-badge soft-badge--neutral">{{ item }}</span>
+              </div>
+            </article>
+            <article v-if="booking.trail_safety_notes" class="surface-muted rounded-[1rem] p-3.5 sm:col-span-2">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Safety notes</p>
+              <p class="text-sm text-slate-700 mb-0 whitespace-pre-line">{{ booking.trail_safety_notes }}</p>
             </article>
           </div>
         </section>
@@ -572,25 +619,6 @@ onUnmounted(() => {
           </div>
         </section>
 
-        <section class="surface-card-lg">
-          <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
-            <h2 class="text-xl font-semibold text-slate-900 mb-0">Trail Day Weather</h2>
-            <span v-if="weather?.available" :class="weatherRiskPillClass">
-              {{ weather.risk_label || 'Weather' }}
-            </span>
-          </div>
-          <p v-if="weatherLoading" class="text-sm tone-body mb-0">Checking weather forecast...</p>
-          <p v-else-if="!weather?.available" class="text-sm tone-body mb-0">
-            {{ weather?.message || 'Weather forecast is unavailable right now.' }}
-          </p>
-          <div v-else class="flex flex-wrap items-center gap-2 text-sm">
-            <span class="soft-badge soft-badge--neutral">{{ weather.summary }}</span>
-            <span class="soft-badge soft-badge--neutral">{{ weather.temperature_min_c }}° - {{ weather.temperature_max_c }}°C</span>
-            <span class="soft-badge soft-badge--neutral">Rain {{ weather.precipitation_probability_max }}%</span>
-            <span class="soft-badge soft-badge--neutral">Wind {{ weather.wind_gusts_10m_max_kmh }} km/h gusts</span>
-            <span class="soft-badge soft-badge--neutral">UV {{ weather.uv_index_max }}</span>
-          </div>
-        </section>
       </div>
 
       <div v-else class="surface-card-lg text-center">
