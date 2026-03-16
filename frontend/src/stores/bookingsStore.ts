@@ -51,12 +51,23 @@ export const useBookingsStore = defineStore('bookings', () => {
       activity_name: string;
       quantity: number;
       price: number;
-    }>
+    }>,
+    bookingContext?: {
+      emergency_contact_name?: string;
+      emergency_contact_phone?: string;
+      transport_needed?: boolean;
+      pickup_location?: string;
+      fitness_self_rating?: string;
+      medical_notes?: string;
+      dietary_notes?: string;
+      gear_notes?: string;
+      special_requests?: string;
+    }
   ) => {
     isLoading.value = true;
     error.value = null;
     try {
-      const newBooking = await apiService.createBooking(trailId, spotsBooked, selectedActivities);
+      const newBooking = await apiService.createBooking(trailId, spotsBooked, selectedActivities, bookingContext);
       bookings.value.unshift(newBooking);
       return newBooking;
     } catch (err) {

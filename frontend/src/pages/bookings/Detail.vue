@@ -83,6 +83,7 @@ const latestAttempt = computed(() => {
 
 const selectedActivities = computed(() => booking.value?.selected_activities || [])
 const hasSelectedActivities = computed(() => selectedActivities.value.length > 0)
+const bookingTrailTitle = computed(() => booking.value?.trail_title || 'Trail booking')
 
 const formatDate = (date: string | undefined) => {
   if (!date) {
@@ -142,6 +143,16 @@ const getStatusColor = (status: string) => {
     Completed: 'info-pill info-pill--status-completed',
   }
   return colors[status] || 'soft-badge soft-badge--neutral'
+}
+
+const getHeroStatusColor = (status: string) => {
+  const colors: Record<string, string> = {
+    Confirmed: 'hero-status-pill hero-status-pill--confirmed',
+    Pending: 'hero-status-pill hero-status-pill--pending',
+    Cancelled: 'hero-status-pill hero-status-pill--cancelled',
+    Completed: 'hero-status-pill hero-status-pill--completed',
+  }
+  return colors[status] || 'hero-info-pill'
 }
 
 const getPaymentStatusColor = (status: string) => {
@@ -347,18 +358,19 @@ onUnmounted(() => {
             <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
               <div>
                 <span class="soft-kicker mb-4">Booking confirmation</span>
-                <h1 class="text-[clamp(1.9rem,4vw,2.8rem)] font-semibold leading-[1.04] tracking-[-0.03em] mb-3">Your trail reservation</h1>
-                <p class="text-white/80 text-base mb-0">Status updates here are synced from booking and MPESA callbacks.</p>
+                <h1 class="text-[clamp(1.9rem,4vw,2.8rem)] font-semibold leading-[1.04] tracking-[-0.03em] mb-3">{{ bookingTrailTitle }}</h1>
+                <p class="text-white/80 text-base mb-0">Reservation status, payment progress, and trail-day details in one place.</p>
                 <div class="mt-4 flex flex-wrap gap-2">
-                  <span :class="getStatusColor(booking.status)">{{ booking.status }}</span>
+                  <span :class="getHeroStatusColor(booking.status)">{{ booking.status }}</span>
                   <span class="hero-info-pill">💳 {{ booking.payment_status }}</span>
                   <span class="hero-info-pill">👥 {{ booking.spots_booked }} {{ booking.spots_booked === 1 ? 'spot' : 'spots' }}</span>
                 </div>
               </div>
               <div class="glass-panel hero-side-panel rounded-[1.2rem] px-5 py-4 text-left min-w-[17rem]">
                 <div class="text-xs uppercase tracking-[0.14em] text-white/80 mb-2">Confirmation code</div>
-                <div class="text-2xl font-semibold text-white mb-3">{{ booking.confirmation_code }}</div>
-                <p class="text-white/90 text-sm mb-0">{{ booking.trail_title || booking.trail_id }}</p>
+                <div class="text-lg font-semibold text-white mb-2">{{ booking.confirmation_code }}</div>
+                <p class="text-white/95 text-sm font-medium mb-1">{{ bookingTrailTitle }}</p>
+                <p v-if="booking.trail_location" class="text-white/80 text-sm mb-0">{{ booking.trail_location }}</p>
               </div>
             </div>
           </div>
@@ -366,7 +378,7 @@ onUnmounted(() => {
 
         <section class="surface-card-lg">
           <p class="app-section-kicker mb-2">Reservation snapshot</p>
-          <h2 class="text-2xl brand-text-strong font-display font-semibold mb-4">All key details in one story</h2>
+          <h2 class="text-2xl brand-text-strong font-display font-semibold mb-4">Reservation details</h2>
           <div class="space-y-3">
             <article class="surface-muted rounded-[1rem] p-4 flex items-start gap-3">
               <span class="soft-icon-tile soft-icon-tile--sage !w-9 !h-9 shrink-0">
@@ -387,7 +399,7 @@ onUnmounted(() => {
               </span>
               <div>
                 <p class="text-sm font-semibold tone-heading mb-1">Trail and spots</p>
-                <p class="text-sm tone-body mb-0">{{ booking.trail_title || booking.trail_id }} · {{ booking.spots_booked }} {{ booking.spots_booked === 1 ? 'spot' : 'spots' }}</p>
+                <p class="text-sm tone-body mb-0">{{ bookingTrailTitle }} · {{ booking.spots_booked }} {{ booking.spots_booked === 1 ? 'spot' : 'spots' }}</p>
               </div>
             </article>
             <article class="surface-muted rounded-[1rem] p-4 flex items-start gap-3">
@@ -408,7 +420,7 @@ onUnmounted(() => {
           <div>
             <p class="app-section-kicker mb-2">Payment journey</p>
             <h2 class="text-2xl brand-text-strong font-display font-semibold mb-2">MPESA progress</h2>
-            <p class="text-sm text-slate-600 mb-0">Initiate or retry payment from this booking only. Status is synced from backend callbacks.</p>
+            <p class="text-sm text-slate-600 mb-0">Track payment progress, receipt status, and the latest request.</p>
           </div>
 
           <div class="surface-muted rounded-[1rem] p-4 border border-slate-200/80">
@@ -495,6 +507,67 @@ onUnmounted(() => {
                 <p class="text-xs text-slate-600 mb-0">Qty {{ activity.quantity }}</p>
               </div>
               <p class="text-sm font-semibold brand-text mb-0">{{ formatPrice(activity.total_price || (activity.price * activity.quantity)) }}</p>
+            </article>
+          </div>
+        </section>
+
+        <section v-if="booking.trail_meeting_point || booking.trail_transport_notes || booking.trail_packing_list" class="surface-card-lg">
+          <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+            <h2 class="text-xl font-semibold text-slate-900 mb-0">Trail logistics</h2>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <article v-if="booking.trail_meeting_point" class="surface-muted rounded-[1rem] p-3.5">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Meeting point</p>
+              <p class="text-sm font-semibold text-slate-900 mb-0">{{ booking.trail_meeting_point }}</p>
+            </article>
+            <article v-if="booking.trail_transport_notes" class="surface-muted rounded-[1rem] p-3.5">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Transport notes</p>
+              <p class="text-sm text-slate-700 mb-0">{{ booking.trail_transport_notes }}</p>
+            </article>
+            <article v-if="booking.trail_packing_list" class="surface-muted rounded-[1rem] p-3.5 sm:col-span-2">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Packing list</p>
+              <p class="text-sm text-slate-700 mb-0 whitespace-pre-line">{{ booking.trail_packing_list }}</p>
+            </article>
+          </div>
+        </section>
+
+        <section v-if="booking.emergency_contact_name || booking.emergency_contact_phone || booking.pickup_location || booking.medical_notes || booking.dietary_notes || booking.gear_notes || booking.special_requests || booking.fitness_self_rating" class="surface-card-lg">
+          <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+            <h2 class="text-xl font-semibold text-slate-900 mb-0">Booking notes</h2>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <article v-if="booking.emergency_contact_name || booking.emergency_contact_phone" class="surface-muted rounded-[1rem] p-3.5">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Emergency contact</p>
+              <p class="text-sm font-semibold text-slate-900 mb-1">{{ booking.emergency_contact_name || '—' }}</p>
+              <p class="text-sm text-slate-700 mb-0">{{ booking.emergency_contact_phone || '—' }}</p>
+            </article>
+            <article v-if="booking.pickup_location || booking.transport_needed" class="surface-muted rounded-[1rem] p-3.5">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Transport</p>
+              <p class="text-sm text-slate-700 mb-0">
+                <span v-if="booking.transport_needed">Transport requested</span>
+                <span v-else>Own transport</span>
+                <span v-if="booking.pickup_location"> · {{ booking.pickup_location }}</span>
+              </p>
+            </article>
+            <article v-if="booking.fitness_self_rating" class="surface-muted rounded-[1rem] p-3.5">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Fitness self-rating</p>
+              <p class="text-sm text-slate-700 mb-0">{{ booking.fitness_self_rating }}</p>
+            </article>
+            <article v-if="booking.medical_notes" class="surface-muted rounded-[1rem] p-3.5">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Medical notes</p>
+              <p class="text-sm text-slate-700 mb-0 whitespace-pre-line">{{ booking.medical_notes }}</p>
+            </article>
+            <article v-if="booking.dietary_notes" class="surface-muted rounded-[1rem] p-3.5">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Dietary notes</p>
+              <p class="text-sm text-slate-700 mb-0 whitespace-pre-line">{{ booking.dietary_notes }}</p>
+            </article>
+            <article v-if="booking.gear_notes" class="surface-muted rounded-[1rem] p-3.5">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Gear notes</p>
+              <p class="text-sm text-slate-700 mb-0 whitespace-pre-line">{{ booking.gear_notes }}</p>
+            </article>
+            <article v-if="booking.special_requests" class="surface-muted rounded-[1rem] p-3.5 sm:col-span-2">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Special requests</p>
+              <p class="text-sm text-slate-700 mb-0 whitespace-pre-line">{{ booking.special_requests }}</p>
             </article>
           </div>
         </section>

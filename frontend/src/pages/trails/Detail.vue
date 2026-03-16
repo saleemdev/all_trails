@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { onMounted, computed, watch, ref } from 'vue'
+import { onMounted, computed, watch, ref, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTrailsStore } from '../../stores/trailsStore'
 import { useAuthStore } from '../../stores/authStore'
 import { apiService } from '../../services/api'
+import TrailWeatherHighlight from '../../components/features/trails/TrailWeatherHighlight.vue'
 import type { TrailWeather } from '../../types'
 
 const route = useRoute()
 const router = useRouter()
 const trailsStore = useTrailsStore()
 const authStore = useAuthStore()
+const TrailMap = defineAsyncComponent(() => import('../../components/features/trails/TrailMap.vue'))
 
 const trail = computed(() => trailsStore.selectedTrail)
 const isLoading = computed(() => trailsStore.isLoading)
@@ -125,16 +127,17 @@ const availabilityLabel = computed(() => {
 
 const hasExtraActivities = computed(() => (trail.value?.extra_activities?.length ?? 0) > 0)
 const trailLocationLabel = computed(() => trail.value?.location || 'Trail location')
-const weatherSunrise = computed(() => (weather.value?.sunrise ? new Date(weather.value.sunrise).toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }) : null))
-const weatherSunset = computed(() => (weather.value?.sunset ? new Date(weather.value.sunset).toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }) : null))
-
-const weatherRiskPillClass = computed(() => {
-  const risk = weather.value?.risk_level
-  if (risk === 'good') return 'info-pill info-pill--risk-good'
-  if (risk === 'caution') return 'info-pill info-pill--risk-caution'
-  if (risk === 'risky') return 'info-pill info-pill--risk-risky'
-  return 'soft-badge soft-badge--neutral'
+const trailMapItems = computed(() => (trail.value ? [trail.value] : []))
+const hasMapCoordinates = computed(() => {
+  const lat = trail.value?.coordinates?.lat
+  const lng = trail.value?.coordinates?.lng
+  return typeof lat === 'number' && typeof lng === 'number' && Number.isFinite(lat) && Number.isFinite(lng)
 })
+const splitLines = (value?: string) =>
+  String(value || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
 
 const loadWeather = async (id: string) => {
   weatherLoading.value = true
@@ -242,35 +245,14 @@ const loadWeather = async (id: string) => {
         </div>
       </section>
 
-      <section class="surface-card-lg">
-        <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
-          <h2 class="text-lg brand-text-strong font-display font-semibold mb-0">Trail Day Weather</h2>
-          <span v-if="weather?.available" :class="weatherRiskPillClass">
-            {{ weather.risk_label || 'Weather' }}
-          </span>
-        </div>
-
-        <p v-if="weatherLoading" class="tone-body mb-0 text-sm">Checking weather forecast...</p>
-        <p v-else-if="!weather?.available" class="tone-body mb-0 text-sm">
-          {{ weather?.message || 'Weather forecast is unavailable right now.' }}
-        </p>
-        <div v-else class="flex flex-wrap items-center gap-2 text-sm">
-          <span class="soft-badge soft-badge--neutral">{{ weather.summary }}</span>
-          <span class="soft-badge soft-badge--neutral">{{ weather.temperature_min_c }}° - {{ weather.temperature_max_c }}°C</span>
-          <span class="soft-badge soft-badge--neutral">Rain {{ weather.precipitation_probability_max }}%</span>
-          <span class="soft-badge soft-badge--neutral">Wind {{ weather.wind_gusts_10m_max_kmh }} km/h gusts</span>
-          <span class="soft-badge soft-badge--neutral">UV {{ weather.uv_index_max }}</span>
-          <span v-if="weatherSunrise" class="soft-badge soft-badge--neutral">Sunrise {{ weatherSunrise }}</span>
-          <span v-if="weatherSunset" class="soft-badge soft-badge--neutral">Sunset {{ weatherSunset }}</span>
-        </div>
-      </section>
+      <TrailWeatherHighlight :weather="weather" :loading="weatherLoading" />
 
       <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_21.5rem]">
         <div class="space-y-6">
           <section class="surface-card-lg">
             <p class="app-section-kicker mb-2">Trail flow</p>
             <h2 class="text-2xl brand-text-strong font-display font-semibold mb-2">Your day at a glance</h2>
-            <p class="tone-body leading-relaxed mb-5">Instead of a flat form, this is arranged as a clear trail story: when to arrive, what the route feels like, and what follows after checkout.</p>
+            <p class="tone-body leading-relaxed mb-5">See the schedule, route profile, and expected pace.</p>
 
             <div class="space-y-3">
               <article class="surface-muted rounded-[1rem] p-4">
@@ -319,14 +301,138 @@ const loadWeather = async (id: string) => {
 
           <section class="surface-card-lg">
             <p class="app-section-kicker mb-2">Trail facts</p>
-            <h2 class="text-2xl brand-text-strong font-display font-semibold mb-4">Everything in one view</h2>
+            <h2 class="text-2xl brand-text-strong font-display font-semibold mb-4">Trail details</h2>
             <div class="flex flex-wrap gap-2.5">
               <span class="soft-badge soft-badge--neutral">Status: {{ trail.status }}</span>
-              <span class="soft-badge soft-badge--neutral">Hosted by {{ trail.host }}</span>
+              <span v-if="trail.host" class="soft-badge soft-badge--neutral">Host: {{ trail.host }}</span>
+              <span v-if="trail.county" class="soft-badge soft-badge--neutral">County: {{ trail.county }}</span>
+              <span v-if="trail.trail_type" class="soft-badge soft-badge--neutral">{{ trail.trail_type }}</span>
               <span class="soft-badge soft-badge--neutral">Capacity {{ trail.available_spots }}/{{ trail.max_capacity }}</span>
               <span v-if="trail.is_long_weekend" class="soft-badge soft-badge--brand">Long-weekend friendly</span>
-              <span class="soft-badge soft-badge--neutral">Created {{ formatDate(trail.created_at) }}</span>
-              <span class="soft-badge soft-badge--neutral">Updated {{ formatDate(trail.updated_at) }}</span>
+              <span v-if="trail.fitness_level" class="soft-badge soft-badge--neutral">{{ trail.fitness_level }}</span>
+              <span v-if="trail.altitude_max_m" class="soft-badge soft-badge--neutral">Max altitude {{ trail.altitude_max_m }} m</span>
+              <span v-if="trail.water_requirement_litres" class="soft-badge soft-badge--neutral">Carry {{ trail.water_requirement_litres }} L water</span>
+              <span v-if="trail.best_season" class="soft-badge soft-badge--neutral">Best in {{ trail.best_season }}</span>
+              <span v-if="trail.latitude !== undefined && trail.longitude !== undefined" class="soft-badge soft-badge--neutral">
+                Coordinates {{ trail.latitude.toFixed(6) }}, {{ trail.longitude.toFixed(6) }}
+              </span>
+            </div>
+          </section>
+
+          <section class="surface-card-lg">
+            <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
+              <div>
+                <p class="app-section-kicker mb-2">Map view</p>
+                <h2 class="text-2xl brand-text-strong font-display font-semibold mb-1">Trail location map</h2>
+                <p class="tone-body text-sm mb-0">
+                  <span v-if="hasMapCoordinates">See where this trail starts and explore its location before you book.</span>
+                  <span v-else>Add latitude and longitude on the trail to show the map here.</span>
+                </p>
+              </div>
+              <span v-if="hasMapCoordinates" class="soft-badge soft-badge--neutral">
+                {{ trail.coordinates?.lat?.toFixed(6) }}, {{ trail.coordinates?.lng?.toFixed(6) }}
+              </span>
+            </div>
+            <TrailMap v-if="hasMapCoordinates" :trails="trailMapItems" @trail-click="view => router.push({ name: 'TrailDetail', params: { id: view.id } })" />
+            <div v-else class="surface-muted rounded-[1rem] p-5 text-sm tone-body">
+              This trail does not have coordinate fields filled yet, so the map cannot be rendered.
+            </div>
+          </section>
+
+          <section class="surface-card-lg" v-if="trail.meeting_point || trail.meeting_notes || trail.transport_notes">
+            <p class="app-section-kicker mb-2">Meeting and transport</p>
+            <h2 class="text-2xl brand-text-strong font-display font-semibold mb-4">Getting there</h2>
+            <div class="space-y-3">
+              <article v-if="trail.meeting_point || trail.meeting_time" class="surface-muted rounded-[1rem] p-4">
+                <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-1">Meeting point</p>
+                <p class="text-sm font-semibold tone-heading mb-1">
+                  {{ trail.meeting_point || trailLocationLabel }}
+                  <span v-if="trail.meeting_time"> · {{ formatTrailTime(trail.meeting_time) }}</span>
+                </p>
+                <p v-if="trail.meeting_notes" class="text-sm tone-body mb-0">{{ trail.meeting_notes }}</p>
+                <a
+                  v-if="trail.meeting_point_maps_url"
+                  :href="trail.meeting_point_maps_url"
+                  target="_blank"
+                  rel="noreferrer"
+                  class="brand-link inline-block mt-2 text-sm"
+                >
+                  Open map
+                </a>
+              </article>
+
+              <article v-if="trail.transport_notes" class="surface-muted rounded-[1rem] p-4">
+                <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-1">Transport notes</p>
+                <p class="text-sm tone-body mb-0">{{ trail.transport_notes }}</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="surface-card-lg" v-if="trail.terrain_summary || trail.trail_highlights || trail.altitude_start_m || trail.altitude_max_m">
+            <p class="app-section-kicker mb-2">Route character</p>
+            <h2 class="text-2xl brand-text-strong font-display font-semibold mb-4">Terrain and altitude</h2>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <article v-if="trail.terrain_summary" class="surface-muted rounded-[1rem] p-4">
+                <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-1">Terrain</p>
+                <p class="text-sm tone-body mb-0">{{ trail.terrain_summary }}</p>
+              </article>
+              <article v-if="trail.altitude_start_m || trail.altitude_max_m" class="surface-muted rounded-[1rem] p-4">
+                <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-1">Altitude</p>
+                <p class="text-sm tone-body mb-0">
+                  <span v-if="trail.altitude_start_m">Start {{ trail.altitude_start_m }} m</span>
+                  <span v-if="trail.altitude_start_m && trail.altitude_max_m"> · </span>
+                  <span v-if="trail.altitude_max_m">High point {{ trail.altitude_max_m }} m</span>
+                </p>
+              </article>
+            </div>
+            <div v-if="splitLines(trail.trail_highlights).length" class="mt-4 flex flex-wrap gap-2">
+              <span v-for="item in splitLines(trail.trail_highlights)" :key="item" class="soft-badge soft-badge--neutral">{{ item }}</span>
+            </div>
+          </section>
+
+          <section class="surface-card-lg" v-if="splitLines(trail.packing_list).length || splitLines(trail.safety_notes).length || splitLines(trail.inclusions).length || splitLines(trail.exclusions).length">
+            <p class="app-section-kicker mb-2">Before you go</p>
+            <h2 class="text-2xl brand-text-strong font-display font-semibold mb-4">Preparation notes</h2>
+            <div class="grid gap-4 lg:grid-cols-2">
+              <article v-if="splitLines(trail.packing_list).length" class="surface-muted rounded-[1rem] p-4">
+                <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-2">Packing list</p>
+                <ul class="space-y-2 text-sm tone-body">
+                  <li v-for="item in splitLines(trail.packing_list)" :key="item" class="flex gap-2">
+                    <span class="mt-[2px]">•</span>
+                    <span>{{ item }}</span>
+                  </li>
+                </ul>
+              </article>
+
+              <article v-if="splitLines(trail.safety_notes).length" class="surface-muted rounded-[1rem] p-4">
+                <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-2">Safety notes</p>
+                <ul class="space-y-2 text-sm tone-body">
+                  <li v-for="item in splitLines(trail.safety_notes)" :key="item" class="flex gap-2">
+                    <span class="mt-[2px]">•</span>
+                    <span>{{ item }}</span>
+                  </li>
+                </ul>
+              </article>
+
+              <article v-if="splitLines(trail.inclusions).length" class="surface-muted rounded-[1rem] p-4">
+                <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-2">Included</p>
+                <ul class="space-y-2 text-sm tone-body">
+                  <li v-for="item in splitLines(trail.inclusions)" :key="item" class="flex gap-2">
+                    <span class="mt-[2px]">•</span>
+                    <span>{{ item }}</span>
+                  </li>
+                </ul>
+              </article>
+
+              <article v-if="splitLines(trail.exclusions).length" class="surface-muted rounded-[1rem] p-4">
+                <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-2">Not included</p>
+                <ul class="space-y-2 text-sm tone-body">
+                  <li v-for="item in splitLines(trail.exclusions)" :key="item" class="flex gap-2">
+                    <span class="mt-[2px]">•</span>
+                    <span>{{ item }}</span>
+                  </li>
+                </ul>
+              </article>
             </div>
           </section>
 

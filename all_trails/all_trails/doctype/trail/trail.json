@@ -14,16 +14,40 @@
   "published",
   "column_break_details",
   "difficulty_level",
+  "trail_type",
   "location",
+  "latitude",
+  "longitude",
+  "county",
   "host",
   "schedule_section",
   "scheduled_date",
   "start_time",
   "end_time",
+  "meeting_point",
   "column_break_schedule",
   "distance_km",
   "duration_hours",
   "elevation_gain_m",
+  "meeting_time",
+  "meeting_notes",
+  "meeting_point_maps_url",
+  "route_profile_section",
+  "terrain_summary",
+  "trail_highlights",
+  "column_break_route_profile",
+  "altitude_start_m",
+  "altitude_max_m",
+  "fitness_level",
+  "water_requirement_litres",
+  "planning_section",
+  "transport_notes",
+  "packing_list",
+  "column_break_planning",
+  "safety_notes",
+  "inclusions",
+  "exclusions",
+  "best_season",
   "capacity_section",
   "max_capacity",
   "available_spots",
@@ -88,10 +112,31 @@
    "reqd": 1
   },
   {
+   "fieldname": "trail_type",
+   "fieldtype": "Select",
+   "label": "Trail Type",
+   "options": "Loop\nOut and Back\nPoint to Point\nSummit Push\nTraverse"
+  },
+  {
    "fieldname": "location",
    "fieldtype": "Data",
    "label": "Location",
    "reqd": 1
+  },
+  {
+   "fieldname": "latitude",
+   "fieldtype": "Float",
+   "label": "Latitude"
+  },
+  {
+   "fieldname": "longitude",
+   "fieldtype": "Float",
+   "label": "Longitude"
+  },
+  {
+   "fieldname": "county",
+   "fieldtype": "Data",
+   "label": "County"
   },
   {
    "fieldname": "host",
@@ -121,6 +166,11 @@
    "label": "End Time"
   },
   {
+   "fieldname": "meeting_point",
+   "fieldtype": "Data",
+   "label": "Meeting Point"
+  },
+  {
    "fieldname": "column_break_schedule",
    "fieldtype": "Column Break"
   },
@@ -138,6 +188,100 @@
    "fieldname": "elevation_gain_m",
    "fieldtype": "Int",
    "label": "Elevation Gain (M)"
+  },
+  {
+   "fieldname": "meeting_time",
+   "fieldtype": "Time",
+   "label": "Meeting Time"
+  },
+  {
+   "fieldname": "meeting_notes",
+   "fieldtype": "Small Text",
+   "label": "Meeting Notes"
+  },
+  {
+   "fieldname": "meeting_point_maps_url",
+   "fieldtype": "Data",
+   "label": "Meeting Point Maps URL"
+  },
+  {
+   "fieldname": "route_profile_section",
+   "fieldtype": "Section Break",
+   "label": "Route Profile"
+  },
+  {
+   "fieldname": "terrain_summary",
+   "fieldtype": "Small Text",
+   "label": "Terrain Summary"
+  },
+  {
+   "fieldname": "trail_highlights",
+   "fieldtype": "Small Text",
+   "label": "Trail Highlights"
+  },
+  {
+   "fieldname": "column_break_route_profile",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "altitude_start_m",
+   "fieldtype": "Int",
+   "label": "Altitude Start (M)"
+  },
+  {
+   "fieldname": "altitude_max_m",
+   "fieldtype": "Int",
+   "label": "Altitude Max (M)"
+  },
+  {
+   "fieldname": "fitness_level",
+   "fieldtype": "Select",
+   "label": "Fitness Level",
+   "options": "Beginner Friendly\nActive Hiker\nExperienced Hiker\nHigh Altitude Experience"
+  },
+  {
+   "fieldname": "water_requirement_litres",
+   "fieldtype": "Float",
+   "label": "Water Requirement (Litres)"
+  },
+  {
+   "fieldname": "planning_section",
+   "fieldtype": "Section Break",
+   "label": "Planning Info"
+  },
+  {
+   "fieldname": "transport_notes",
+   "fieldtype": "Small Text",
+   "label": "Transport Notes"
+  },
+  {
+   "fieldname": "packing_list",
+   "fieldtype": "Small Text",
+   "label": "Packing List"
+  },
+  {
+   "fieldname": "column_break_planning",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "safety_notes",
+   "fieldtype": "Small Text",
+   "label": "Safety Notes"
+  },
+  {
+   "fieldname": "inclusions",
+   "fieldtype": "Small Text",
+   "label": "Inclusions"
+  },
+  {
+   "fieldname": "exclusions",
+   "fieldtype": "Small Text",
+   "label": "Exclusions"
+  },
+  {
+   "fieldname": "best_season",
+   "fieldtype": "Data",
+   "label": "Best Season"
   },
   {
    "fieldname": "capacity_section",

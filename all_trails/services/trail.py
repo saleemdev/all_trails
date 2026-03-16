@@ -15,13 +15,33 @@ TRAIL_LIST_FIELDS = [
 	"slug",
 	"description",
 	"difficulty_level",
+	"trail_type",
 	"location",
+	"latitude",
+	"longitude",
+	"county",
 	"distance_km",
 	"elevation_gain_m",
 	"duration_hours",
 	"scheduled_date",
 	"start_time",
 	"end_time",
+	"meeting_point",
+	"meeting_time",
+	"meeting_notes",
+	"meeting_point_maps_url",
+	"terrain_summary",
+	"trail_highlights",
+	"altitude_start_m",
+	"altitude_max_m",
+	"fitness_level",
+	"water_requirement_litres",
+	"transport_notes",
+	"packing_list",
+	"safety_notes",
+	"inclusions",
+	"exclusions",
+	"best_season",
 	"max_capacity",
 	"available_spots",
 	"price_kshs",
@@ -49,6 +69,20 @@ def _sanitize_public_asset(value: str | None) -> str | None:
 	if url.startswith(("/assets/", "/files/", "http://", "https://")):
 		return url
 	if url.startswith("/"):
+		return url
+	return None
+
+
+def _sanitize_reference_url(value: str | None) -> str | None:
+	if not value:
+		return None
+	url = cstr(value).strip()
+	if not url:
+		return None
+	low = url.lower()
+	if low.startswith(("javascript:", "data:", "vbscript:")):
+		return None
+	if low.startswith(("http://", "https://")):
 		return url
 	return None
 
@@ -97,13 +131,37 @@ def serialize_trail(row: dict[str, Any], *, include_activities: bool = True) -> 
 		"slug": row.slug,
 		"description": row.description,
 		"difficulty_level": row.difficulty_level,
+		"trail_type": row.trail_type,
 		"location": row.location,
+		"latitude": flt(row.latitude) if row.latitude is not None else None,
+		"longitude": flt(row.longitude) if row.longitude is not None else None,
+		"coordinates": {
+			"lat": flt(row.latitude),
+			"lng": flt(row.longitude),
+		} if row.latitude is not None and row.longitude is not None else None,
+		"county": row.county,
 		"distance_km": flt(row.distance_km),
 		"elevation_gain_m": cint(row.elevation_gain_m),
 		"duration_hours": flt(row.duration_hours),
 		"scheduled_date": row.scheduled_date,
 		"start_time": row.start_time,
 		"end_time": row.end_time,
+		"meeting_point": row.meeting_point,
+		"meeting_time": row.meeting_time,
+		"meeting_notes": row.meeting_notes,
+		"meeting_point_maps_url": _sanitize_reference_url(row.meeting_point_maps_url),
+		"terrain_summary": row.terrain_summary,
+		"trail_highlights": row.trail_highlights,
+		"altitude_start_m": cint(row.altitude_start_m) if row.altitude_start_m is not None else None,
+		"altitude_max_m": cint(row.altitude_max_m) if row.altitude_max_m is not None else None,
+		"fitness_level": row.fitness_level,
+		"water_requirement_litres": flt(row.water_requirement_litres) if row.water_requirement_litres is not None else None,
+		"transport_notes": row.transport_notes,
+		"packing_list": row.packing_list,
+		"safety_notes": row.safety_notes,
+		"inclusions": row.inclusions,
+		"exclusions": row.exclusions,
+		"best_season": row.best_season,
 		"max_capacity": cint(row.max_capacity),
 		"available_spots": cint(row.available_spots),
 		"price_kshs": flt(row.price_kshs),
@@ -194,9 +252,13 @@ def get_trails(filters: str | dict[str, Any] | None = None, page: int = 1, page_
 	rows = frappe.db.sql(
 		f"""
 			select
-				name, title, slug, description, difficulty_level, location,
+				name, title, slug, description, difficulty_level, trail_type, location, latitude, longitude, county,
 				distance_km, elevation_gain_m, duration_hours, scheduled_date,
-				start_time, end_time, max_capacity, available_spots, price_kshs,
+				start_time, end_time, meeting_point, meeting_time, meeting_notes, meeting_point_maps_url,
+				terrain_summary, trail_highlights, altitude_start_m, altitude_max_m,
+				fitness_level, water_requirement_litres, transport_notes, packing_list,
+				safety_notes, inclusions, exclusions, best_season,
+				max_capacity, available_spots, price_kshs,
 				host, featured_image, route_geojson, status, published,
 				is_long_weekend, creation, modified
 			from `tabTrail`

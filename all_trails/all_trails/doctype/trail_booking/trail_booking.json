@@ -21,6 +21,9 @@
   "trail_title",
   "trail_location",
   "trail_scheduled_date",
+  "trail_meeting_point",
+  "trail_transport_notes",
+  "trail_packing_list",
   "pricing_section",
   "spots_booked",
   "base_price",
@@ -28,6 +31,17 @@
   "column_break_pricing",
   "total_price",
   "currency",
+  "readiness_section",
+  "emergency_contact_name",
+  "emergency_contact_phone",
+  "transport_needed",
+  "pickup_location",
+  "column_break_readiness",
+  "fitness_self_rating",
+  "medical_notes",
+  "dietary_notes",
+  "gear_notes",
+  "special_requests",
   "activities_section",
   "selected_activities",
   "payment_tab",
@@ -145,6 +159,24 @@
    "read_only": 1
   },
   {
+   "fieldname": "trail_meeting_point",
+   "fieldtype": "Data",
+   "label": "Trail Meeting Point",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_transport_notes",
+   "fieldtype": "Small Text",
+   "label": "Trail Transport Notes",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trail_packing_list",
+   "fieldtype": "Small Text",
+   "label": "Trail Packing List",
+   "read_only": 1
+  },
+  {
    "fieldname": "pricing_section",
    "fieldtype": "Section Break",
    "label": "Pricing"
@@ -182,6 +214,62 @@
    "fieldname": "currency",
    "fieldtype": "Data",
    "label": "Currency"
+  },
+  {
+   "fieldname": "readiness_section",
+   "fieldtype": "Section Break",
+   "label": "Hiker Readiness"
+  },
+  {
+   "fieldname": "emergency_contact_name",
+   "fieldtype": "Data",
+   "label": "Emergency Contact Name"
+  },
+  {
+   "fieldname": "emergency_contact_phone",
+   "fieldtype": "Data",
+   "label": "Emergency Contact Phone"
+  },
+  {
+   "default": "0",
+   "fieldname": "transport_needed",
+   "fieldtype": "Check",
+   "label": "Transport Needed"
+  },
+  {
+   "fieldname": "pickup_location",
+   "fieldtype": "Data",
+   "label": "Pickup Location"
+  },
+  {
+   "fieldname": "column_break_readiness",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fitness_self_rating",
+   "fieldtype": "Select",
+   "label": "Fitness Self Rating",
+   "options": "First Trail\nOccasional Hiker\nRegular Hiker\nStrong Climber"
+  },
+  {
+   "fieldname": "medical_notes",
+   "fieldtype": "Small Text",
+   "label": "Medical Notes"
+  },
+  {
+   "fieldname": "dietary_notes",
+   "fieldtype": "Small Text",
+   "label": "Dietary Notes"
+  },
+  {
+   "fieldname": "gear_notes",
+   "fieldtype": "Small Text",
+   "label": "Gear Notes"
+  },
+  {
+   "fieldname": "special_requests",
+   "fieldtype": "Small Text",
+   "label": "Special Requests"
   },
   {
    "fieldname": "activities_section",

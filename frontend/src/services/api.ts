@@ -103,13 +103,39 @@ class ApiService {
       title: raw.title || '',
       description: raw.description || '',
       difficulty_level: raw.difficulty_level || 'Moderate',
+      trail_type: raw.trail_type || undefined,
       location: raw.location || '',
+      latitude: raw.latitude === undefined || raw.latitude === null ? undefined : Number(raw.latitude),
+      longitude: raw.longitude === undefined || raw.longitude === null ? undefined : Number(raw.longitude),
+      county: raw.county || undefined,
+      coordinates:
+        raw.coordinates?.lat !== undefined && raw.coordinates?.lng !== undefined
+          ? { lat: Number(raw.coordinates.lat), lng: Number(raw.coordinates.lng) }
+          : raw.latitude !== undefined && raw.latitude !== null && raw.longitude !== undefined && raw.longitude !== null
+            ? { lat: Number(raw.latitude), lng: Number(raw.longitude) }
+            : undefined,
       distance_km: Number(raw.distance_km || 0),
       elevation_gain_m: Number(raw.elevation_gain_m || 0),
       duration_hours: Number(raw.duration_hours || 0),
       scheduled_date: raw.scheduled_date || '',
       start_time: raw.start_time || '',
       end_time: raw.end_time || '',
+      meeting_point: raw.meeting_point || undefined,
+      meeting_time: raw.meeting_time || undefined,
+      meeting_notes: raw.meeting_notes || undefined,
+      meeting_point_maps_url: raw.meeting_point_maps_url || undefined,
+      terrain_summary: raw.terrain_summary || undefined,
+      trail_highlights: raw.trail_highlights || undefined,
+      altitude_start_m: raw.altitude_start_m === undefined || raw.altitude_start_m === null ? undefined : Number(raw.altitude_start_m),
+      altitude_max_m: raw.altitude_max_m === undefined || raw.altitude_max_m === null ? undefined : Number(raw.altitude_max_m),
+      fitness_level: raw.fitness_level || undefined,
+      water_requirement_litres: raw.water_requirement_litres === undefined || raw.water_requirement_litres === null ? undefined : Number(raw.water_requirement_litres),
+      transport_notes: raw.transport_notes || undefined,
+      packing_list: raw.packing_list || undefined,
+      safety_notes: raw.safety_notes || undefined,
+      inclusions: raw.inclusions || undefined,
+      exclusions: raw.exclusions || undefined,
+      best_season: raw.best_season || undefined,
       max_capacity: Number(raw.max_capacity || 0),
       available_spots: Number(raw.available_spots || 0),
       price_kshs: Number(raw.price_kshs || 0),
@@ -161,6 +187,18 @@ class ApiService {
       trail_title: raw.trail_title || undefined,
       trail_location: raw.trail_location || undefined,
       trail_scheduled_date: raw.trail_scheduled_date || undefined,
+      trail_meeting_point: raw.trail_meeting_point || undefined,
+      trail_transport_notes: raw.trail_transport_notes || undefined,
+      trail_packing_list: raw.trail_packing_list || undefined,
+      emergency_contact_name: raw.emergency_contact_name || undefined,
+      emergency_contact_phone: raw.emergency_contact_phone || undefined,
+      transport_needed: Boolean(raw.transport_needed),
+      pickup_location: raw.pickup_location || undefined,
+      fitness_self_rating: raw.fitness_self_rating || undefined,
+      medical_notes: raw.medical_notes || undefined,
+      dietary_notes: raw.dietary_notes || undefined,
+      gear_notes: raw.gear_notes || undefined,
+      special_requests: raw.special_requests || undefined,
       selected_activities: activities,
       created_at: raw.created_at || raw.creation || '',
       updated_at: raw.updated_at || raw.modified || '',
@@ -311,7 +349,18 @@ class ApiService {
       activity_name: string
       quantity: number
       price: number
-    }>
+    }>,
+    bookingContext?: {
+      emergency_contact_name?: string
+      emergency_contact_phone?: string
+      transport_needed?: boolean
+      pickup_location?: string
+      fitness_self_rating?: string
+      medical_notes?: string
+      dietary_notes?: string
+      gear_notes?: string
+      special_requests?: string
+    }
   ): Promise<TrailBooking> {
     const response = await this.axiosInstance.post('/all_trails.api.create_booking', {
       trail_id: trailId,
@@ -320,6 +369,7 @@ class ApiService {
         activity_id: activity.activity_id,
         quantity: activity.quantity,
       })),
+      booking_context: bookingContext || {},
       idempotency_key: this.generateIdempotencyKey('booking'),
     })
 

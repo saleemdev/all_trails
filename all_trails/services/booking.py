@@ -66,6 +66,24 @@ def _normalize_selected_activities(selected_activities: Any) -> list[dict[str, A
 	return normalized
 
 
+def _normalize_booking_context(booking_context: Any) -> dict[str, Any]:
+	parsed = parse_json_input(booking_context, {})
+	if not isinstance(parsed, dict):
+		return {}
+
+	return {
+		"emergency_contact_name": cstr(parsed.get("emergency_contact_name") or "").strip() or None,
+		"emergency_contact_phone": cstr(parsed.get("emergency_contact_phone") or "").strip() or None,
+		"transport_needed": cint(parsed.get("transport_needed") or 0) == 1,
+		"pickup_location": cstr(parsed.get("pickup_location") or "").strip() or None,
+		"fitness_self_rating": cstr(parsed.get("fitness_self_rating") or "").strip() or None,
+		"medical_notes": cstr(parsed.get("medical_notes") or "").strip() or None,
+		"dietary_notes": cstr(parsed.get("dietary_notes") or "").strip() or None,
+		"gear_notes": cstr(parsed.get("gear_notes") or "").strip() or None,
+		"special_requests": cstr(parsed.get("special_requests") or "").strip() or None,
+	}
+
+
 
 def _get_booking_activities(booking_name: str) -> list[dict[str, Any]]:
 	rows = frappe.get_all(
@@ -111,6 +129,9 @@ def serialize_booking(booking: dict[str, Any] | frappe.model.document.Document) 
 		"trail_title": row.trail_title,
 		"trail_location": row.trail_location,
 		"trail_scheduled_date": row.trail_scheduled_date,
+		"trail_meeting_point": row.trail_meeting_point,
+		"trail_transport_notes": row.trail_transport_notes,
+		"trail_packing_list": row.trail_packing_list,
 		"booking_date": row.booking_date,
 		"status": row.status,
 		"spots_booked": cint(row.spots_booked),
@@ -128,6 +149,15 @@ def serialize_booking(booking: dict[str, Any] | frappe.model.document.Document) 
 		"mpesa_receipt_number": row.mpesa_receipt_number,
 		"mpesa_transaction_id": row.mpesa_transaction_id,
 		"confirmation_code": row.confirmation_code,
+		"emergency_contact_name": row.emergency_contact_name,
+		"emergency_contact_phone": row.emergency_contact_phone,
+		"transport_needed": cint(row.transport_needed) == 1,
+		"pickup_location": row.pickup_location,
+		"fitness_self_rating": row.fitness_self_rating,
+		"medical_notes": row.medical_notes,
+		"dietary_notes": row.dietary_notes,
+		"gear_notes": row.gear_notes,
+		"special_requests": row.special_requests,
 		"cancellation_reason": row.cancellation_reason,
 		"cancellation_date": row.cancelled_on,
 		"completed_on": row.completed_on,
@@ -266,6 +296,7 @@ def create_booking(
 	trail_id: str,
 	spots_booked: int,
 	selected_activities: list[dict[str, Any]] | str | None = None,
+	booking_context: dict[str, Any] | str | None = None,
 	idempotency_key: str | None = None,
 ):
 	user = ensure_authenticated_user()
@@ -286,6 +317,7 @@ def create_booking(
 		return get_booking_detail(existing)
 
 	activities = _normalize_selected_activities(selected_activities)
+	context = _normalize_booking_context(booking_context)
 
 	save_point = f"all_trails_booking_create_{frappe.generate_hash(length=8)}"
 	frappe.db.savepoint(save_point)
@@ -372,6 +404,18 @@ def create_booking(
 				"trail_title": trail.title,
 				"trail_location": trail.location,
 				"trail_scheduled_date": trail.scheduled_date,
+				"trail_meeting_point": trail.meeting_point,
+				"trail_transport_notes": trail.transport_notes,
+				"trail_packing_list": trail.packing_list,
+				"emergency_contact_name": context.get("emergency_contact_name"),
+				"emergency_contact_phone": context.get("emergency_contact_phone"),
+				"transport_needed": 1 if context.get("transport_needed") else 0,
+				"pickup_location": context.get("pickup_location"),
+				"fitness_self_rating": context.get("fitness_self_rating"),
+				"medical_notes": context.get("medical_notes"),
+				"dietary_notes": context.get("dietary_notes"),
+				"gear_notes": context.get("gear_notes"),
+				"special_requests": context.get("special_requests"),
 			}
 		)
 

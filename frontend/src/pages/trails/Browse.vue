@@ -104,7 +104,7 @@ const viewDescription = computed(() => {
           Explore amazing trails
         </h1>
         <p class="page-copy-light mb-0">
-          Browse Kenya's hikes through a calmer interface designed to make route comparison feel effortless.
+          Compare distance, difficulty, date, and price.
         </p>
       </div>
     </div>

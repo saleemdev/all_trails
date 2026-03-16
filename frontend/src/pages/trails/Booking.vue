@@ -6,6 +6,7 @@ import { useUiStore } from '../../stores/uiStore'
 import { useTrailsStore } from '../../stores/trailsStore'
 import { useAuthStore } from '../../stores/authStore'
 import { apiService } from '../../services/api'
+import TrailWeatherHighlight from '../../components/features/trails/TrailWeatherHighlight.vue'
 import type { TrailWeather } from '../../types'
 
 const route = useRoute()
@@ -23,6 +24,15 @@ const selectedActivities = ref<Record<string, number>>({})
 const isSubmitting = ref(false)
 const weather = ref<TrailWeather | null>(null)
 const weatherLoading = ref(false)
+const emergencyContactName = ref('')
+const emergencyContactPhone = ref('')
+const transportNeeded = ref(false)
+const pickupLocation = ref('')
+const fitnessSelfRating = ref('')
+const medicalNotes = ref('')
+const dietaryNotes = ref('')
+const gearNotes = ref('')
+const specialRequests = ref('')
 
 onMounted(async () => {
   if (!authStore.isAuthenticated) {
@@ -73,8 +83,19 @@ const maxSpots = computed(() => {
   return Math.min(trail.value.available_spots, 10)
 })
 
+const splitLines = (value?: string) =>
+  String(value || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+
 const handleBookingSubmit = async () => {
   if (!trail.value) {
+    return
+  }
+
+  if (!emergencyContactName.value.trim() || !emergencyContactPhone.value.trim()) {
+    uiStore.showError('Add an emergency contact name and phone number')
     return
   }
 
@@ -89,7 +110,17 @@ const handleBookingSubmit = async () => {
         price: activity.price_kshs,
       }))
 
-    const booking = await bookingsStore.createBooking(trail.value.id, spotsBooked.value, activities)
+    const booking = await bookingsStore.createBooking(trail.value.id, spotsBooked.value, activities, {
+      emergency_contact_name: emergencyContactName.value.trim(),
+      emergency_contact_phone: emergencyContactPhone.value.trim(),
+      transport_needed: transportNeeded.value,
+      pickup_location: pickupLocation.value.trim(),
+      fitness_self_rating: fitnessSelfRating.value,
+      medical_notes: medicalNotes.value.trim(),
+      dietary_notes: dietaryNotes.value.trim(),
+      gear_notes: gearNotes.value.trim(),
+      special_requests: specialRequests.value.trim(),
+    })
     uiStore.showSuccess('Booking created successfully. Complete payment on the booking page.')
     router.push({ name: 'BookingDetail', params: { id: booking.id } })
   } catch (error: any) {
@@ -127,13 +158,6 @@ const formatPrice = (price: number) => {
   }).format(price)
 }
 
-const weatherRiskPillClass = computed(() => {
-  const risk = weather.value?.risk_level
-  if (risk === 'good') return 'info-pill info-pill--risk-good'
-  if (risk === 'caution') return 'info-pill info-pill--risk-caution'
-  if (risk === 'risky') return 'info-pill info-pill--risk-risky'
-  return 'soft-badge soft-badge--neutral'
-})
 </script>
 
 <template>
@@ -171,30 +195,90 @@ const weatherRiskPillClass = computed(() => {
           </div>
         </section>
 
-        <section class="surface-card-lg">
-          <div class="mb-5 rounded-[1rem] surface-muted p-3.5">
-            <div class="flex items-center justify-between gap-3 flex-wrap mb-2">
-              <p class="text-sm font-semibold tone-heading mb-0">Trail Day Weather</p>
-              <span v-if="weather?.available" :class="weatherRiskPillClass">{{ weather.risk_label }}</span>
-            </div>
-            <p v-if="weatherLoading" class="text-sm tone-body mb-0">Checking weather forecast...</p>
-            <p v-else-if="!weather?.available" class="text-sm tone-body mb-0">
-              {{ weather?.message || 'Weather forecast is unavailable right now.' }}
-            </p>
-            <div v-else class="flex flex-wrap gap-1.5 text-xs">
-              <span class="soft-badge soft-badge--neutral">{{ weather.summary }}</span>
-              <span class="soft-badge soft-badge--neutral">{{ weather.temperature_min_c }}°-{{ weather.temperature_max_c }}°C</span>
-              <span class="soft-badge soft-badge--neutral">Rain {{ weather.precipitation_probability_max }}%</span>
-              <span class="soft-badge soft-badge--neutral">Gust {{ weather.wind_gusts_10m_max_kmh }} km/h</span>
-            </div>
-          </div>
+        <TrailWeatherHighlight :weather="weather" :loading="weatherLoading" compact class="mb-5" />
 
+        <section class="surface-card-lg">
           <div class="grid grid-cols-1 xl:grid-cols-[1.5fr_0.9fr] gap-8">
             <div class="space-y-6">
               <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-2">Number of Spots</label>
                 <input v-model.number="spotsBooked" type="number" min="1" :max="maxSpots" class="soft-input w-full" />
                 <p class="text-sm tone-body mt-2 mb-0">Available: {{ trail.available_spots }} spots</p>
+              </div>
+
+              <div v-if="trail.meeting_point || trail.transport_notes || splitLines(trail.packing_list).length" class="surface-card-muted space-y-4">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-1">Trail logistics</p>
+                  <p v-if="trail.meeting_point" class="text-sm font-semibold text-slate-900 mb-1">{{ trail.meeting_point }}</p>
+                  <p v-if="trail.meeting_notes" class="text-sm tone-body mb-0">{{ trail.meeting_notes }}</p>
+                </div>
+                <div v-if="trail.transport_notes">
+                  <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-1">Transport</p>
+                  <p class="text-sm tone-body mb-0">{{ trail.transport_notes }}</p>
+                </div>
+                <div v-if="splitLines(trail.packing_list).length">
+                  <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-1">Carry</p>
+                  <div class="flex flex-wrap gap-2">
+                    <span v-for="item in splitLines(trail.packing_list)" :key="item" class="soft-badge soft-badge--neutral">{{ item }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">Emergency contact name</label>
+                  <input v-model="emergencyContactName" type="text" class="soft-input w-full" />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">Emergency contact phone</label>
+                  <input v-model="emergencyContactPhone" type="tel" class="soft-input w-full" placeholder="07... or 254..." />
+                </div>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">Fitness level</label>
+                  <select v-model="fitnessSelfRating" class="soft-input w-full">
+                    <option value="">Select</option>
+                    <option value="First Trail">First Trail</option>
+                    <option value="Occasional Hiker">Occasional Hiker</option>
+                    <option value="Regular Hiker">Regular Hiker</option>
+                    <option value="Strong Climber">Strong Climber</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="flex items-center gap-3 rounded-[1rem] surface-muted px-4 py-3 mt-7">
+                    <input v-model="transportNeeded" type="checkbox" />
+                    <span class="text-sm font-medium text-slate-800">I need transport support</span>
+                  </label>
+                </div>
+              </div>
+
+              <div v-if="transportNeeded">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Pickup location</label>
+                <input v-model="pickupLocation" type="text" class="soft-input w-full" placeholder="Estate, landmark, or stage" />
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">Medical notes</label>
+                  <textarea v-model="medicalNotes" rows="4" class="soft-input w-full" placeholder="Asthma, allergies, altitude concerns, injuries"></textarea>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">Dietary notes</label>
+                  <textarea v-model="dietaryNotes" rows="4" class="soft-input w-full" placeholder="Vegetarian, halal, diabetic snacks, none"></textarea>
+                </div>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">Gear notes</label>
+                  <textarea v-model="gearNotes" rows="4" class="soft-input w-full" placeholder="Need pole advice, no rain jacket, carrying camera gear"></textarea>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">Special requests</label>
+                  <textarea v-model="specialRequests" rows="4" class="soft-input w-full" placeholder="Anything the host should know"></textarea>
+                </div>
               </div>
 
               <div v-if="trail.is_long_weekend" class="surface-muted rounded-[1rem] p-3.5 flex items-center gap-2.5 border border-blue-200/70">

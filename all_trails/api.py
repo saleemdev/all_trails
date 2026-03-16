@@ -344,12 +344,14 @@ def create_booking(
 	trail_id: str,
 	spots_booked: int,
 	selected_activities: list[dict] | str | None = None,
+	booking_context: dict | str | None = None,
 	idempotency_key: str | None = None,
 ):
 	return _create_booking(
 		trail_id=trail_id,
 		spots_booked=spots_booked,
 		selected_activities=selected_activities,
+		booking_context=booking_context,
 		idempotency_key=idempotency_key,
 	)
 
