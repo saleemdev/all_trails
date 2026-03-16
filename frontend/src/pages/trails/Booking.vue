@@ -5,6 +5,8 @@ import { useBookingsStore } from '../../stores/bookingsStore'
 import { useUiStore } from '../../stores/uiStore'
 import { useTrailsStore } from '../../stores/trailsStore'
 import { useAuthStore } from '../../stores/authStore'
+import { apiService } from '../../services/api'
+import type { TrailWeather } from '../../types'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,6 +21,8 @@ const isLoading = computed(() => trailsStore.isLoading)
 const spotsBooked = ref(1)
 const selectedActivities = ref<Record<string, number>>({})
 const isSubmitting = ref(false)
+const weather = ref<TrailWeather | null>(null)
+const weatherLoading = ref(false)
 
 onMounted(async () => {
   if (!authStore.isAuthenticated) {
@@ -30,12 +34,24 @@ onMounted(async () => {
   if (!trail.value || trail.value.id !== trailId) {
     await trailsStore.fetchTrailById(trailId)
   }
+  void loadWeather(trailId)
 
   if (!trail.value) {
     uiStore.showError('Trail not found')
     router.push({ name: 'TrailBrowse' })
   }
 })
+
+const loadWeather = async (trailId: string) => {
+  weatherLoading.value = true
+  try {
+    weather.value = await apiService.getTrailWeather(trailId)
+  } catch {
+    weather.value = null
+  } finally {
+    weatherLoading.value = false
+  }
+}
 
 const basePrice = computed(() => {
   if (!trail.value) return 0
@@ -110,12 +126,20 @@ const formatPrice = (price: number) => {
     minimumFractionDigits: 0,
   }).format(price)
 }
+
+const weatherRiskPillClass = computed(() => {
+  const risk = weather.value?.risk_level
+  if (risk === 'good') return 'info-pill info-pill--risk-good'
+  if (risk === 'caution') return 'info-pill info-pill--risk-caution'
+  if (risk === 'risky') return 'info-pill info-pill--risk-risky'
+  return 'soft-badge soft-badge--neutral'
+})
 </script>
 
 <template>
   <div class="page-shell min-h-screen py-6 sm:py-8">
     <div class="layout-shell-narrow">
-      <button @click="router.back()" class="soft-button-secondary px-5 py-3 mb-6">
+      <button @click="router.back()" class="soft-button-secondary px-4 py-2.5 mb-5 text-sm">
         ← Back to Trail
       </button>
 
@@ -129,43 +153,60 @@ const formatPrice = (price: number) => {
       </div>
 
       <div v-else class="space-y-6">
-        <section class="page-header rounded-[2rem] overflow-hidden text-white relative">
+        <section class="page-header rounded-[1.5rem] overflow-hidden text-white relative">
           <div class="absolute inset-0 hero-grid opacity-25"></div>
           <div class="relative z-10 p-6 sm:p-8 lg:p-9">
             <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
               <div>
                 <span class="soft-kicker mb-4">Trail booking</span>
-                <h1 class="text-[clamp(2rem,4vw,3rem)] font-semibold leading-[1.02] tracking-[-0.04em] mb-3">Reserve your place</h1>
-                <p class="text-white/80 text-lg mb-0">Create your booking first, then pay from the booking detail page.</p>
+                <h1 class="text-[clamp(1.9rem,4vw,2.7rem)] font-semibold leading-[1.04] tracking-[-0.03em] mb-3">Reserve your place</h1>
+                <p class="text-white/80 text-base mb-0">Create your booking now, then complete MPESA payment on your booking page.</p>
               </div>
-              <div class="glass-panel rounded-[1.5rem] px-6 py-5 min-w-[18rem]">
-                <div class="text-sm uppercase tracking-[0.22em] text-white/60 mb-2">Trail</div>
-                <div class="mb-2 text-2xl font-semibold text-white">{{ trail.title }}</div>
-                <div class="text-white/75 text-sm">{{ new Date(trail.scheduled_date).toLocaleDateString() }} at {{ trail.start_time }}</div>
+              <div class="glass-panel hero-side-panel rounded-[1.2rem] px-5 py-4 min-w-[17rem]">
+                <div class="text-xs uppercase tracking-[0.14em] text-white/80 mb-2">Your Trail</div>
+                <div class="mb-1.5 text-xl font-semibold text-white">{{ trail.title }}</div>
+                <div class="text-white/90 text-sm">🗓 {{ new Date(trail.scheduled_date).toLocaleDateString() }} • {{ trail.start_time }}</div>
               </div>
             </div>
           </div>
         </section>
 
         <section class="surface-card-lg">
+          <div class="mb-5 rounded-[1rem] surface-muted p-3.5">
+            <div class="flex items-center justify-between gap-3 flex-wrap mb-2">
+              <p class="text-sm font-semibold tone-heading mb-0">Trail Day Weather</p>
+              <span v-if="weather?.available" :class="weatherRiskPillClass">{{ weather.risk_label }}</span>
+            </div>
+            <p v-if="weatherLoading" class="text-sm tone-body mb-0">Checking weather forecast...</p>
+            <p v-else-if="!weather?.available" class="text-sm tone-body mb-0">
+              {{ weather?.message || 'Weather forecast is unavailable right now.' }}
+            </p>
+            <div v-else class="flex flex-wrap gap-1.5 text-xs">
+              <span class="soft-badge soft-badge--neutral">{{ weather.summary }}</span>
+              <span class="soft-badge soft-badge--neutral">{{ weather.temperature_min_c }}°-{{ weather.temperature_max_c }}°C</span>
+              <span class="soft-badge soft-badge--neutral">Rain {{ weather.precipitation_probability_max }}%</span>
+              <span class="soft-badge soft-badge--neutral">Gust {{ weather.wind_gusts_10m_max_kmh }} km/h</span>
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 xl:grid-cols-[1.5fr_0.9fr] gap-8">
             <div class="space-y-6">
               <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Number of Spots</label>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Number of Spots</label>
                 <input v-model.number="spotsBooked" type="number" min="1" :max="maxSpots" class="soft-input w-full" />
-                <p class="text-sm text-slate-600 mt-2 mb-0">Available: {{ trail.available_spots }} spots</p>
+                <p class="text-sm tone-body mt-2 mb-0">Available: {{ trail.available_spots }} spots</p>
               </div>
 
-              <div v-if="trail.is_long_weekend" class="surface-muted rounded-[1.25rem] p-4 flex items-center gap-3 border border-blue-200/80">
+              <div v-if="trail.is_long_weekend" class="surface-muted rounded-[1rem] p-3.5 flex items-center gap-2.5 border border-blue-200/70">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span class="text-sm font-bold text-blue-900">Long Weekend Available</span>
+                <span class="text-sm font-semibold text-blue-900 mb-0">Long-weekend friendly schedule.</span>
               </div>
 
               <div v-if="trail.extra_activities && trail.extra_activities.length > 0" class="space-y-4">
                 <div class="flex items-center gap-2">
-                  <h3 class="text-lg font-bold text-slate-900">Extra Activities</h3>
+                  <h3 class="text-lg font-semibold text-slate-900">Extra Activities</h3>
                   <span class="soft-badge soft-badge--neutral">Optional</span>
                 </div>
 
@@ -184,14 +225,13 @@ const formatPrice = (price: number) => {
                       <div class="flex-1 min-w-[16rem]">
                         <div class="flex items-center gap-2 mb-2 flex-wrap">
                           <span v-if="activity.icon" class="text-2xl">{{ activity.icon }}</span>
-                          <h4 class="font-bold text-slate-900">{{ activity.name }}</h4>
-                          <span v-if="!activity.available" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-bold">Unavailable</span>
+                          <h4 class="font-semibold text-slate-900">{{ activity.name }}</h4>
+                          <span v-if="!activity.available" class="soft-badge soft-badge--accent">Unavailable</span>
                         </div>
                         <p class="text-sm text-slate-600 mb-2">{{ activity.description }}</p>
                         <div class="flex items-center gap-4 text-xs flex-wrap">
-                          <span class="font-bold brand-text">+{{ formatPrice(activity.price_kshs) }} <span class="text-slate-500 font-normal">extra</span></span>
-                          <span v-if="activity.max_participants" class="text-slate-500">Max: {{ activity.max_participants }} people</span>
-                          <span v-if="activity.available_spots !== undefined" class="text-slate-500">Available: {{ activity.available_spots }} spots</span>
+                          <span class="font-semibold brand-text">+{{ formatPrice(activity.price_kshs) }}</span>
+                          <span v-if="activity.available_spots !== undefined" class="text-slate-500">{{ activity.available_spots }} spots left</span>
                         </div>
                       </div>
 
@@ -233,17 +273,18 @@ const formatPrice = (price: number) => {
             </div>
 
             <aside class="space-y-4">
-              <div class="surface-muted rounded-[1.5rem] p-6 space-y-3">
+              <div class="surface-muted rounded-[1.2rem] p-5 space-y-3">
+                <p class="text-xs uppercase tracking-[0.1em] tone-muted mb-2">Booking Summary</p>
                 <div class="flex justify-between text-slate-700"><span>Price per person</span><span class="font-semibold">{{ formatPrice(trail.price_kshs) }}</span></div>
-                <div class="flex justify-between text-slate-700"><span>Number of spots</span><span class="font-semibold">{{ spotsBooked }}</span></div>
+                <div class="flex justify-between text-slate-700"><span>Spots</span><span class="font-semibold">{{ spotsBooked }}</span></div>
                 <div class="flex justify-between text-slate-700"><span>Base total</span><span class="font-semibold">{{ formatPrice(basePrice) }}</span></div>
                 <div v-if="activitiesPrice > 0" class="flex justify-between brand-text font-semibold"><span>Extra activities</span><span>+{{ formatPrice(activitiesPrice) }}</span></div>
-                <div class="flex justify-between font-bold text-lg pt-3 border-t border-slate-200/80"><span>Total Price</span><span class="brand-text">{{ formatPrice(totalPrice) }}</span></div>
+                <div class="flex justify-between font-semibold text-base pt-3 border-t border-slate-200/80"><span>Total</span><span class="brand-text">{{ formatPrice(totalPrice) }}</span></div>
               </div>
 
-              <div class="glass-panel rounded-[1.5rem] p-5">
-                <h3 class="font-bold text-slate-900 mb-2">What happens next</h3>
-                <p class="text-sm text-slate-600 mb-0">After booking creation, you will be redirected to your booking detail page where you can pay, retry payment, and track status.</p>
+              <div class="glass-panel rounded-[1.2rem] p-4">
+                <h3 class="font-semibold text-slate-900 mb-2">What happens next</h3>
+                <p class="text-sm tone-body mb-0">You’ll be redirected to booking details to pay, refresh payment status, and track progress.</p>
               </div>
             </aside>
           </div>

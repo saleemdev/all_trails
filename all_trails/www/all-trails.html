@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/assets/all_trails/frontend/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Discover and book curated hiking trails across Kenya with Stepup Adventures." />
     <meta name="keywords" content="Stepup Adventures, hiking, trails, Kenya, adventure, outdoor" />
     <meta name="author" content="Stepup Adventures" />
-    <meta name="theme-color" content="#315348" />
+    <meta name="theme-color" content="#2b4a40" />
     <meta property="og:title" content="Stepup Adventures - Hiking Management Platform" />
     <meta property="og:description" content="Discover and book curated hiking trails across Kenya with Stepup Adventures." />
     <meta property="og:type" content="website" />
@@ -21,14 +21,53 @@
         // Fallback hashes in case API fails (for initial deployments)
         // Note: These *do* include the `assets/` prefix because Vite outputs into an `assets/` subdirectory,
         // and BASE_PATH intentionally points to `/assets/all_trails/frontend/` (without the trailing `assets/`).
-        const FALLBACK_JS = 'assets/index-Cmb-KO45.js';
-        const FALLBACK_CSS = 'assets/index-B1xn1fn1.css';
+        const FALLBACK_JS = 'assets/index-BatpHfE9.js';
+        const FALLBACK_CSS = 'assets/index-DCVDkpcm.css';
         const BASE_PATH = '/assets/all_trails/frontend/';
+        const CHUNK_RECOVERY_KEY = 'all-trails:chunk-recovery';
+
+        function isDynamicImportError(errorLike) {
+          const message = errorLike && (errorLike.message || errorLike.toString && errorLike.toString()) || '';
+          if (!message) return false;
+          return message.includes('Failed to fetch dynamically imported module')
+            || message.includes('Importing a module script failed');
+        }
+
+        function recoverFromStaleChunk(reason, errorLike) {
+          try {
+            const alreadyRetried = window.sessionStorage.getItem(CHUNK_RECOVERY_KEY) === '1';
+            if (alreadyRetried) {
+              console.error('[ASSETS] Chunk recovery already attempted once in this session.', { reason, errorLike });
+              return;
+            }
+
+            window.sessionStorage.setItem(CHUNK_RECOVERY_KEY, '1');
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('v', Date.now().toString());
+            console.warn('[ASSETS] Recovering from stale frontend chunks by forcing a fresh page load.', { reason });
+            window.location.replace(currentUrl.toString());
+          } catch (recoveryError) {
+            console.error('[ASSETS] Failed to recover from stale chunk error.', recoveryError);
+          }
+        }
+
+        window.addEventListener('vite:preloadError', function(event) {
+          event.preventDefault();
+          recoverFromStaleChunk('vite:preloadError', event && event.payload);
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+          if (!isDynamicImportError(event && event.reason)) return;
+          event.preventDefault();
+          recoverFromStaleChunk('unhandledrejection:dynamic-import', event.reason);
+        });
 
         async function loadAssets() {
           try {
             // Try to fetch the manifest from the API endpoint
-            const response = await fetch('/api/method/all_trails.api.get_frontend_assets');
+            const manifestUrl = new URL('/api/method/all_trails.api.get_frontend_assets', window.location.origin);
+            manifestUrl.searchParams.set('_', Date.now().toString());
+            const response = await fetch(manifestUrl.toString(), { cache: 'no-store' });
             const data = await response.json();
 
             let jsFile = FALLBACK_JS;

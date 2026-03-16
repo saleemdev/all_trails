@@ -47,6 +47,10 @@ from all_trails.services.shop import (
 	validate_merchandise_coupon as _validate_merchandise_coupon,
 )
 from all_trails.services.trail import get_trail_detail as _get_trail_detail, get_trails as _get_trails
+from all_trails.services.weather import (
+	get_booking_weather as _get_booking_weather,
+	get_trail_weather as _get_trail_weather,
+)
 
 
 DEFAULT_REDIRECT_PATH = "/all-trails/"
@@ -150,6 +154,21 @@ def _sanitize_asset_path(asset_path: str | None) -> str | None:
 	return asset
 
 
+def _set_no_store_headers() -> None:
+	response = getattr(frappe.local, "response", None)
+	if not isinstance(response, dict):
+		return
+
+	headers = response.get("headers")
+	if not isinstance(headers, dict):
+		headers = {}
+		response["headers"] = headers
+
+	headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+	headers["Pragma"] = "no-cache"
+	headers["Expires"] = "0"
+
+
 @frappe.whitelist(allow_guest=True)
 def get_frontend():
 	"""
@@ -189,6 +208,10 @@ def get_frontend_assets():
 		dict: Asset file names with hashes
 	"""
 	try:
+		# Ensure clients always revalidate this endpoint so stale asset hashes
+		# are not served after a new deployment.
+		_set_no_store_headers()
+
 		manifest = _load_manifest()
 		if not manifest:
 			return {
@@ -226,6 +249,7 @@ def get_frontend_assets():
 
 	except Exception as e:
 		frappe.logger().error(f"Error reading frontend manifest: {str(e)}")
+		_set_no_store_headers()
 		return {
 			"success": False,
 			"message": "Failed to read frontend asset manifest",
@@ -310,6 +334,11 @@ def get_trail_detail(trail_id: str):
 	return _get_trail_detail(trail_id=trail_id)
 
 
+@frappe.whitelist(allow_guest=True)
+def get_trail_weather(trail_id: str):
+	return _get_trail_weather(trail_id=trail_id)
+
+
 @frappe.whitelist()
 def create_booking(
 	trail_id: str,
@@ -333,6 +362,11 @@ def get_user_bookings(status: str | None = None):
 @frappe.whitelist()
 def get_booking_detail(booking_id: str):
 	return _get_booking_detail(booking_id=booking_id)
+
+
+@frappe.whitelist()
+def get_booking_weather(booking_id: str):
+	return _get_booking_weather(booking_id=booking_id)
 
 
 @frappe.whitelist()

@@ -86,6 +86,12 @@ const getDifficultyToneClass = (value: string) => {
   return ''
 }
 const isViewActive = (mode: 'grid' | 'calendar' | 'table' | 'map') => viewMode.value === mode
+const viewDescription = computed(() => {
+  if (viewMode.value === 'calendar') return 'Browse your trail schedule in calendar format.'
+  if (viewMode.value === 'table') return 'Scan key details in a compact table.'
+  if (viewMode.value === 'map') return 'Explore trails on the map.'
+  return 'Find your next adventure below.'
+})
 </script>
 
 <template>
@@ -238,7 +244,7 @@ const isViewActive = (mode: 'grid' | 'calendar' | 'table' | 'map') => viewMode.v
 
       <div v-else-if="trails.length === 0" class="text-center py-32">
         <div class="mb-5 text-6xl">🏔️</div>
-        <h3 class="text-3xl font-semibold text-slate-900 mb-3">No Trails Found</h3>
+        <h3 class="text-2xl font-semibold text-slate-900 mb-2">No trails found</h3>
         <p class="mx-auto mb-7 max-w-md text-base text-slate-600">
           Try adjusting your search or filters to discover more trails.
         </p>
@@ -251,16 +257,17 @@ const isViewActive = (mode: 'grid' | 'calendar' | 'table' | 'map') => viewMode.v
         </button>
       </div>
 
-      <div v-else-if="viewMode === 'grid'">
-        <div class="mb-8">
-          <h2 class="text-2xl font-semibold text-slate-900">
+      <div v-else>
+        <div class="mb-6">
+          <h2 class="text-xl font-semibold text-slate-900">
             <span class="brand-text">{{ trails.length }}</span>
-            {{ trails.length === 1 ? 'Trail' : 'Trails' }} Available
+            {{ trails.length === 1 ? 'Trail' : 'Trails' }}
           </h2>
-          <p class="text-slate-600 mt-1 mb-0">Find your next adventure below</p>
+          <p class="text-slate-600 mt-1 mb-0">{{ viewDescription }}</p>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+        <div v-if="viewMode === 'grid'">
+        <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           <TrailCard
             v-for="trail in trails"
             :key="trail.id"
@@ -273,48 +280,25 @@ const isViewActive = (mode: 'grid' | 'calendar' | 'table' | 'map') => viewMode.v
             @keydown.space.prevent="viewTrailDetail(trail.id)"
           />
         </div>
-      </div>
-
-      <div v-else-if="viewMode === 'calendar'">
-        <div class="mb-8">
-          <h2 class="text-2xl font-semibold text-slate-900">
-            <span class="brand-text">{{ trails.length }}</span>
-            {{ trails.length === 1 ? 'Trail' : 'Trails' }} Available
-          </h2>
-          <p class="text-slate-600 mt-1 mb-0">Browse your trail schedule in calendar format</p>
         </div>
+        <div v-else-if="viewMode === 'calendar'">
         <TrailCalendar
           :trails="trails"
           @trail-click="(trail: Trail) => viewTrailDetail(trail.id)"
         />
-      </div>
-
-      <div v-else-if="viewMode === 'table'">
-        <div class="mb-8">
-          <h2 class="text-2xl font-semibold text-slate-900">
-            <span class="brand-text">{{ trails.length }}</span>
-            {{ trails.length === 1 ? 'Trail' : 'Trails' }} Available
-          </h2>
-          <p class="text-slate-600 mt-1 mb-0">Browse trails in table format</p>
         </div>
+        <div v-else-if="viewMode === 'table'">
         <TrailTable
           :trails="trails"
           @trail-click="(trail: Trail) => viewTrailDetail(trail.id)"
         />
-      </div>
-
-      <div v-else-if="viewMode === 'map'">
-        <div class="mb-8">
-          <h2 class="text-2xl font-semibold text-slate-900">
-            <span class="brand-text">{{ trails.length }}</span>
-            {{ trails.length === 1 ? 'Trail' : 'Trails' }} Available
-          </h2>
-          <p class="text-slate-600 mt-1 mb-0">Explore trails on the map</p>
         </div>
+        <div v-else-if="viewMode === 'map'">
         <TrailMap
           :trails="trails"
           @trail-click="(trail: Trail) => viewTrailDetail(trail.id)"
         />
+        </div>
       </div>
     </div>
   </div>

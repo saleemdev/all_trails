@@ -182,19 +182,10 @@ const handleImageError = (e: Event) => {
             </button>
           </div>
 
-          <div class="mt-10 grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-3">
-            <div class="soft-stat text-left" role="article" aria-label="50 plus trails available">
-              <div class="soft-stat-value soft-count mb-1.5">50+</div>
-              <div class="text-white/75 text-sm uppercase tracking-[0.24em]">Trails</div>
-            </div>
-            <div class="soft-stat text-left" role="article" aria-label="1000 plus hikers">
-              <div class="soft-stat-value soft-count mb-1.5">1000+</div>
-              <div class="text-white/75 text-sm uppercase tracking-[0.24em]">Hikers</div>
-            </div>
-            <div class="soft-stat text-left" role="article" aria-label="25 plus guides">
-              <div class="soft-stat-value soft-count mb-1.5">25+</div>
-              <div class="text-white/75 text-sm uppercase tracking-[0.24em]">Guides</div>
-            </div>
+          <div class="mt-9 flex flex-wrap items-center gap-2.5">
+            <span class="hero-info-pill">🌿 Curated local trails</span>
+            <span class="hero-info-pill">🧭 Guide-led experiences</span>
+            <span class="hero-info-pill">💳 Simple MPESA checkout</span>
           </div>
         </div>
       </div>
@@ -216,34 +207,34 @@ const handleImageError = (e: Event) => {
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
-          <article class="surface-card-lg soft-card-hover text-center">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4.5 md:gap-5">
+          <article class="surface-card soft-card-hover text-center">
             <div class="soft-icon-tile soft-icon-tile--sage mx-auto mb-5">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
             </div>
-            <h3 class="tone-heading mb-2.5 text-xl font-medium sm:text-[1.5rem]">Curated Trails</h3>
+            <h3 class="tone-heading mb-2 text-lg font-medium sm:text-[1.3rem]">Curated Trails</h3>
             <p class="tone-body leading-relaxed mb-0">A cleaner discovery flow for routes that feel thoughtfully selected, not dumped into a catalog.</p>
           </article>
 
-          <article class="surface-card-lg soft-card-hover text-center">
+          <article class="surface-card soft-card-hover text-center">
             <div class="soft-icon-tile soft-icon-tile--brass mx-auto mb-5">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h3 class="tone-heading mb-2.5 text-xl font-medium sm:text-[1.5rem]">Expert Guides</h3>
+            <h3 class="tone-heading mb-2 text-lg font-medium sm:text-[1.3rem]">Expert Guides</h3>
             <p class="tone-body leading-relaxed mb-0">Guide-led experiences presented with more confidence, less marketing noise, and better hierarchy.</p>
           </article>
 
-          <article class="surface-card-lg soft-card-hover text-center">
+          <article class="surface-card soft-card-hover text-center">
             <div class="soft-icon-tile soft-icon-tile--mist mx-auto mb-5">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 class="tone-heading mb-2.5 text-xl font-medium sm:text-[1.5rem]">Clear Booking</h3>
+            <h3 class="tone-heading mb-2 text-lg font-medium sm:text-[1.3rem]">Clear Booking</h3>
             <p class="tone-body leading-relaxed mb-0">Transactions and scheduling now sit inside a calmer interface that feels more credible for payments.</p>
           </article>
         </div>

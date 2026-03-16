@@ -120,21 +120,12 @@ onUnmounted(() => {
           </div>
 
           <GlassCard tone="hero" class="relative">
-            <p class="text-xs uppercase tracking-[0.22em] text-white/55">Launch capsule</p>
-            <p class="mt-3 text-2xl font-semibold">Merch that feels aligned with the premium trip experience.</p>
-            <div class="mt-8 grid gap-4 sm:grid-cols-3">
-              <div class="rounded-[1.15rem] bg-white/10 px-4 py-4">
-                <p class="text-3xl font-semibold">{{ store.categories.length || 4 }}</p>
-                <p class="mt-1 text-sm text-white/65">Shop departments</p>
-              </div>
-              <div class="rounded-[1.15rem] bg-white/10 px-4 py-4">
-                <p class="text-3xl font-semibold">{{ store.items.length || 8 }}</p>
-                <p class="mt-1 text-sm text-white/65">Launch products</p>
-              </div>
-              <div class="rounded-[1.15rem] bg-white/10 px-4 py-4">
-                <p class="text-3xl font-semibold">2-step</p>
-                <p class="mt-1 text-sm text-white/65">BNPL supported</p>
-              </div>
+            <p class="text-xs uppercase tracking-[0.22em] text-white/80">Trail gear</p>
+            <p class="mt-3 text-xl font-semibold">Simple picks for comfort, weather changes, and long-day reliability.</p>
+            <div class="mt-5 flex flex-wrap gap-2 text-xs">
+              <span class="hero-info-pill">Hike-tested</span>
+              <span class="hero-info-pill">Lightweight options</span>
+              <span class="hero-info-pill">MPESA checkout</span>
             </div>
           </GlassCard>
         </div>
@@ -205,7 +196,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div class="grid gap-3.5 md:grid-cols-2 xl:grid-cols-4">
         <RouterLink
           v-for="category in store.categories"
           :key="category.slug"
@@ -214,11 +205,11 @@ onUnmounted(() => {
           @click="store.setFilters({ category: category.slug })"
         >
           <GlassCard hoverable :padded="false" class="h-full overflow-hidden">
-            <img :src="category.image_url" :alt="category.name" class="h-48 w-full object-cover" />
-            <div class="p-5">
+            <img :src="category.image_url" :alt="category.name" class="h-40 w-full object-cover" />
+            <div class="p-4">
               <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{{ category.hero_copy }}</p>
-              <h3 class="mt-2 text-2xl font-semibold text-slate-950">{{ category.name }}</h3>
-              <p class="mt-3 text-sm leading-6 text-slate-600">{{ category.description }}</p>
+              <h3 class="mt-2 text-xl font-semibold text-slate-950">{{ category.name }}</h3>
+              <p class="mt-2.5 text-sm leading-6 text-slate-600">{{ category.description }}</p>
             </div>
           </GlassCard>
         </RouterLink>
@@ -245,7 +236,7 @@ onUnmounted(() => {
       </div>
 
       <template v-else>
-        <div v-if="store.items.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+        <div v-if="store.items.length" class="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           <GlassProductCard
             v-for="item in store.items"
             :key="item.item_code"
@@ -256,7 +247,7 @@ onUnmounted(() => {
 
         <GlassCard v-else tone="strong" class="text-center">
           <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">No products matched</p>
-          <h3 class="mt-3 text-3xl font-semibold text-slate-950">Broaden the search window</h3>
+          <h3 class="mt-3 text-2xl font-semibold text-slate-950">Broaden the search window</h3>
           <p class="mt-4 text-sm leading-6 text-slate-600">
             Try clearing the category filter or searching with a broader term. The catalog is currently scoped to a
             tight launch collection.

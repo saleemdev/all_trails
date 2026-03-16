@@ -38,6 +38,25 @@ export interface Trail {
   updated_at: string;
 }
 
+export interface TrailWeather {
+  available: boolean;
+  message?: string;
+  date: string;
+  summary?: string;
+  weather_code?: number;
+  risk_level?: 'good' | 'caution' | 'risky';
+  risk_label?: string;
+  temperature_max_c?: number;
+  temperature_min_c?: number;
+  precipitation_probability_max?: number;
+  wind_speed_10m_max_kmh?: number;
+  wind_gusts_10m_max_kmh?: number;
+  uv_index_max?: number;
+  sunrise?: string;
+  sunset?: string;
+  coordinates?: { lat: number; lng: number };
+}
+
 // Trail Booking Types
 export interface TrailBooking {
   id: string;

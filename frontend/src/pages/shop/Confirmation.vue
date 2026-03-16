@@ -22,23 +22,23 @@ onMounted(async () => {
   <div class="layout-shell page-block">
     <template v-if="order">
       <GlassCard tone="hero">
-        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/55">Order confirmed</p>
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-white/80">Order confirmed</p>
         <h1 class="mt-3 text-[clamp(2.2rem,5vw,3.8rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-white">Thanks, {{ order.customer_name.split(' ')[0] || 'Explorer' }}.</h1>
         <p class="mt-4 max-w-2xl text-base leading-8 text-white/76">
           Order <span class="font-semibold text-white">{{ order.order_number }}</span> is now in the system. We will
           keep the order timeline updated as payment clears and fulfillment advances.
         </p>
         <div class="mt-8 grid gap-4 sm:grid-cols-3">
-          <div class="rounded-[1.2rem] bg-white/10 px-5 py-5">
-            <p class="text-xs uppercase tracking-[0.18em] text-white/55">Payment</p>
+          <div class="hero-side-panel rounded-[1.2rem] px-5 py-5">
+            <p class="text-xs uppercase tracking-[0.18em] text-white/80">Payment</p>
             <p class="mt-3 text-2xl font-semibold">{{ order.payment_status }}</p>
           </div>
-          <div class="rounded-[1.2rem] bg-white/10 px-5 py-5">
-            <p class="text-xs uppercase tracking-[0.18em] text-white/55">Fulfillment</p>
+          <div class="hero-side-panel rounded-[1.2rem] px-5 py-5">
+            <p class="text-xs uppercase tracking-[0.18em] text-white/80">Fulfillment</p>
             <p class="mt-3 text-2xl font-semibold">{{ order.fulfillment_status }}</p>
           </div>
-          <div class="rounded-[1.2rem] bg-white/10 px-5 py-5">
-            <p class="text-xs uppercase tracking-[0.18em] text-white/55">Total</p>
+          <div class="hero-side-panel rounded-[1.2rem] px-5 py-5">
+            <p class="text-xs uppercase tracking-[0.18em] text-white/80">Total</p>
             <p class="mt-3 text-2xl font-semibold">KES {{ order.total_amount.toLocaleString() }}</p>
           </div>
         </div>

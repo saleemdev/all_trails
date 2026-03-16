@@ -21,9 +21,13 @@ const commentContent = ref('')
 const guestName = ref('')
 const guestEmail = ref('')
 const commentFeedback = ref('')
+const authorImageFailed = ref(false)
+const coverImageFailed = ref(false)
 
 const loadPost = async () => {
   const slug = route.params.slug as string
+  authorImageFailed.value = false
+  coverImageFailed.value = false
   await blogStore.fetchBlogPostBySlug(slug)
 }
 
@@ -76,11 +80,6 @@ const submitComment = async () => {
   }
 }
 
-const handleImageError = (event: Event) => {
-  const image = event.target as HTMLImageElement
-  image.style.display = 'none'
-}
-
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('en-KE', {
     year: 'numeric',
@@ -97,7 +96,7 @@ onMounted(async () => {
 <template>
   <div class="page-shell w-full min-h-screen">
     <div class="layout-shell-narrow page-block-tight">
-      <button @click="router.back()" class="soft-button-secondary px-5 py-3 mb-6">
+      <button @click="router.back()" class="soft-button-secondary px-4 py-2.5 text-sm mb-5">
         ← Back to Blog
       </button>
 
@@ -106,69 +105,83 @@ onMounted(async () => {
         <p class="text-lg text-slate-600 font-medium mb-0">Loading article...</p>
       </div>
 
-      <article v-else-if="post" class="glass-panel-strong rounded-[2rem] overflow-hidden space-y-0">
-        <div class="h-96 bg-slate-900 relative overflow-hidden">
+      <article v-else-if="post" class="surface-card-lg rounded-[1.1rem]">
+        <header class="mb-5 border-b border-[color:var(--color-border-soft)] pb-5">
+          <div class="mb-3 flex items-center gap-3">
+            <img
+              v-if="post.author_image && !authorImageFailed"
+              :src="post.author_image"
+              :alt="post.author"
+              class="h-11 w-11 rounded-full object-cover border border-[color:var(--color-border-soft)]"
+              @error="authorImageFailed = true"
+            />
+            <div v-else class="brand-mark h-11 w-11 rounded-full text-[13px] text-white">
+              {{ post.author?.charAt(0) || 'A' }}
+            </div>
+            <div class="min-w-0">
+              <p class="mb-0 text-[15px] font-semibold text-[color:var(--color-text-primary)] truncate">{{ post.author }}</p>
+              <p class="mb-0 text-[12px] text-[color:var(--color-text-secondary)]">{{ formatDate(post.published_date) }} · {{ post.read_time }} min read</p>
+            </div>
+          </div>
+
+          <h1 class="text-[clamp(1.55rem,3.1vw,2.3rem)] font-semibold leading-[1.1] tracking-[-0.03em] text-[color:var(--color-text-primary)] mb-0">
+            {{ post.title }}
+          </h1>
+
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <span class="soft-badge soft-badge--neutral">{{ post.category }}</span>
+          </div>
+        </header>
+
+        <figure
+          v-if="post.featured_image && !coverImageFailed"
+          class="mb-5 overflow-hidden rounded-[1rem] border border-[color:var(--color-border-soft)] bg-slate-900"
+        >
           <img
-            v-if="post.featured_image"
             :src="post.featured_image"
             :alt="post.title"
-            class="w-full h-full object-cover"
-            @error="handleImageError"
+            class="h-[210px] w-full object-cover sm:h-[280px]"
+            @error="coverImageFailed = true"
           />
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/78 via-slate-900/18 to-transparent"></div>
-          <div class="absolute bottom-8 left-8 right-8">
-            <span class="soft-badge soft-badge--neutral mb-4">{{ post.category }}</span>
-            <h1 class="text-[clamp(2rem,4vw,3.2rem)] font-semibold text-white leading-[1.02] tracking-[-0.04em] max-w-4xl">{{ post.title }}</h1>
-          </div>
-        </div>
+        </figure>
 
-        <div class="p-5 sm:p-6 md:p-10">
-          <div class="flex items-center gap-4 mb-8 pb-8 border-b border-slate-200/80 flex-wrap">
-            <div class="brand-mark w-16 h-16 rounded-full text-xl text-white">{{ post.author?.charAt(0) || 'A' }}</div>
-            <div>
-              <div class="text-lg font-semibold text-slate-900">{{ post.author }}</div>
-              <div class="text-slate-600">{{ formatDate(post.published_date) }} · {{ post.read_time }} min read</div>
-            </div>
-          </div>
+        <p v-if="post.excerpt" class="mb-5 text-[14px] leading-7 text-[color:var(--color-text-secondary)]">
+          {{ post.excerpt }}
+        </p>
 
-          <div class="surface-muted rounded-[1.5rem] p-5 sm:p-6 mb-8 border-l-4 border-[color:var(--color-primary)]">
-            <p class="text-lg text-slate-700 leading-8 font-medium italic mb-0">{{ post.excerpt }}</p>
-          </div>
+        <div class="prose prose-lg max-w-none text-slate-700" v-html="post.content"></div>
 
-          <div class="prose prose-lg max-w-none text-slate-700" v-html="post.content"></div>
-
-          <div v-if="post.tags.length" class="mt-12 pt-8 border-t border-slate-200/80">
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="tag in post.tags"
-                :key="tag"
-                class="soft-badge soft-badge--neutral"
-              >
-                #{{ tag }}
-              </span>
-            </div>
+        <div v-if="post.tags.length" class="mt-8 pt-6 border-t border-[color:var(--color-border-soft)]">
+          <div class="flex flex-wrap gap-2">
+            <span
+              v-for="tag in post.tags"
+              :key="tag"
+              class="soft-badge soft-badge--neutral"
+            >
+              #{{ tag }}
+            </span>
           </div>
         </div>
       </article>
 
       <div v-else class="surface-card-lg text-center">
-        <h2 class="text-3xl font-semibold text-slate-900 mb-3">Article Not Found</h2>
+        <h2 class="text-2xl font-semibold text-slate-900 mb-2">Article not found</h2>
         <p class="mb-7 text-base text-slate-600">We couldn't find the article you're looking for.</p>
         <button @click="router.push('/blog')" class="brand-button px-8 py-4">
           Back to Blog
         </button>
       </div>
 
-      <section v-if="post" class="surface-card-lg mt-6 space-y-6">
+      <section v-if="post" class="surface-card-lg mt-6 space-y-5">
         <div>
-          <h2 class="text-2xl font-semibold text-slate-900 mb-2">Comments</h2>
-          <p class="text-sm text-slate-600 mb-0">Published comments are shown below. New comments are moderated before display.</p>
+          <h2 class="text-xl font-semibold text-slate-900 mb-2">Comments</h2>
+          <p class="text-sm tone-body mb-0">Published comments appear below. New comments are moderated.</p>
         </div>
 
         <div class="space-y-3">
           <div v-if="commentsLoading" class="text-sm text-slate-500">Loading comments...</div>
           <div v-else-if="comments.length === 0" class="text-sm text-slate-500">No published comments yet.</div>
-          <article v-else v-for="comment in comments" :key="comment.id" class="surface-muted rounded-[1.2rem] p-4">
+          <article v-else v-for="comment in comments" :key="comment.id" class="surface-muted rounded-[1rem] p-3.5">
             <div class="flex items-center justify-between gap-4 mb-2 flex-wrap">
               <p class="font-semibold text-slate-900 mb-0">{{ comment.author }}</p>
               <p class="text-xs text-slate-500 mb-0">{{ formatDate(comment.created_at) }}</p>

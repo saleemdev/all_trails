@@ -17,7 +17,7 @@
               </svg>
             </div>
             <div class="text-left">
-              <p class="tone-kicker text-[9px]">Trail account</p>
+              <p class="tone-kicker text-[9px]">Account</p>
               <h1 class="brand-wordmark text-[1.45rem] font-medium leading-none tracking-[-0.02em]">Stepup Adventures</h1>
             </div>
           </div>
@@ -28,7 +28,7 @@
             <p class="tone-kicker text-[10px]">Welcome back</p>
             <h2 class="tone-heading mt-1.5 text-[clamp(1.25rem,3.3vw,1.65rem)] font-medium leading-tight tracking-[-0.02em]">Sign in to continue</h2>
             <p class="tone-body mt-1.5 mb-0 text-[13px] leading-5">
-              Pick up where your next trail left off.
+              Pick up where your next trail plan left off.
             </p>
           </div>
 
@@ -92,16 +92,7 @@
               </div>
             </div>
 
-            <div class="flex flex-col gap-2.5 text-[13px] sm:flex-row sm:items-center sm:justify-between">
-              <label class="tone-body flex items-center text-[13px]">
-                <input
-                  v-model="rememberMe"
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-[color:var(--color-border-soft)]"
-                  style="accent-color: var(--color-primary)"
-                />
-                <span class="ml-2">Remember me</span>
-              </label>
+            <div class="flex items-center justify-end">
               <a href="/app/forgot-password" class="brand-link text-sm">
                 Forgot password?
               </a>
@@ -165,9 +156,6 @@
           </div>
         </div>
 
-        <p class="tone-muted mt-3.5 text-center text-[10px] leading-4 sm:mt-4">
-          By signing in, you agree to our Terms of Service and Privacy Policy
-        </p>
       </div>
     </div>
   </section>
@@ -187,7 +175,6 @@ const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
-const rememberMe = ref(false)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const socialProviders = ref<Array<{

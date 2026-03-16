@@ -70,7 +70,7 @@ const formatDate = (date: string) => {
           </div>
         </section>
 
-        <section class="glass-panel-strong rounded-[2rem] overflow-hidden">
+        <section class="glass-panel-strong rounded-[1.5rem] overflow-hidden">
           <div class="relative h-[600px] bg-slate-950">
             <img
               v-if="gallery.images[selectedImageIndex]"
@@ -137,7 +137,7 @@ const formatDate = (date: string) => {
 
       <div v-else class="surface-card-lg text-center">
         <div class="mb-5 text-6xl">📸</div>
-        <h2 class="text-3xl font-semibold text-slate-900 mb-3">Gallery Not Found</h2>
+        <h2 class="text-2xl font-semibold text-slate-900 mb-2">Gallery not found</h2>
         <p class="mb-7 text-base text-slate-600">We couldn't find the gallery you're looking for.</p>
         <button @click="router.push('/blog')" class="brand-button px-8 py-4">
           Back to Galleries

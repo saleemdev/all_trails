@@ -66,11 +66,11 @@ watch(
           <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Order overview</p>
-              <h2 class="mt-2 text-3xl font-semibold text-slate-950">{{ order.order_number }}</h2>
+              <h2 class="mt-2 text-2xl font-semibold text-slate-950">{{ order.order_number }}</h2>
               <p class="mt-2 text-sm text-slate-500">Placed on {{ new Date(order.created_at).toLocaleString() }}</p>
             </div>
             <div class="rounded-[1.2rem] bg-slate-950 px-4 py-3 text-white">
-              <p class="text-xs uppercase tracking-[0.18em] text-white/55">Total</p>
+              <p class="text-xs uppercase tracking-[0.18em] text-white/80">Total</p>
               <p class="mt-2 text-2xl font-semibold">KES {{ order.total_amount.toLocaleString() }}</p>
             </div>
           </div>

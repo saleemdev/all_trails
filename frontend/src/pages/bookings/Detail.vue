@@ -7,6 +7,7 @@ import type { MpesaPaymentState } from '../../types/index'
 import { apiService } from '../../services/api'
 import { getMpesaProgressModel } from '../../utils/mpesaStatus'
 import { isValidKenyanMpesaPhone, normalizeKenyanMpesaPhone } from '../../utils/payments'
+import type { TrailWeather } from '../../types'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,6 +23,8 @@ const isInitiatingPayment = ref(false)
 const isRefreshingPayment = ref(false)
 const isCancellingBooking = ref(false)
 const pollingStatus = ref(false)
+const weather = ref<TrailWeather | null>(null)
+const weatherLoading = ref(false)
 
 let pollingHandle: ReturnType<typeof setInterval> | null = null
 let pollAttemptCount = 0
@@ -78,6 +81,9 @@ const latestAttempt = computed(() => {
   return history[history.length - 1]
 })
 
+const selectedActivities = computed(() => booking.value?.selected_activities || [])
+const hasSelectedActivities = computed(() => selectedActivities.value.length > 0)
+
 const formatDate = (date: string | undefined) => {
   if (!date) {
     return '—'
@@ -99,14 +105,43 @@ const formatPrice = (price: number) => {
   }).format(price)
 }
 
+const paymentTimeline = computed(() => {
+  const events: Array<{ label: string; detail: string }> = [
+    {
+      label: 'Booking created',
+      detail: formatDate(booking.value?.created_at || booking.value?.booking_date),
+    },
+    {
+      label: 'Payment status',
+      detail: booking.value?.payment_status || 'Pending',
+    },
+  ]
+
+  if (latestAttempt.value?.checkout_request_id) {
+    events.push({
+      label: 'Latest checkout request',
+      detail: latestAttempt.value.checkout_request_id,
+    })
+  }
+
+  if (booking.value?.mpesa_receipt_number) {
+    events.push({
+      label: 'Receipt captured',
+      detail: booking.value.mpesa_receipt_number,
+    })
+  }
+
+  return events
+})
+
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    Confirmed: 'bg-green-100 text-green-800 border-green-300',
-    Pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    Cancelled: 'bg-red-100 text-red-800 border-red-300',
-    Completed: 'bg-blue-100 text-blue-800 border-blue-300',
+    Confirmed: 'info-pill info-pill--status-confirmed',
+    Pending: 'info-pill info-pill--status-pending',
+    Cancelled: 'info-pill info-pill--status-cancelled',
+    Completed: 'info-pill info-pill--status-completed',
   }
-  return colors[status] || 'bg-gray-100 text-gray-800 border-gray-300'
+  return colors[status] || 'soft-badge soft-badge--neutral'
 }
 
 const getPaymentStatusColor = (status: string) => {
@@ -122,6 +157,14 @@ const getPaymentStatusColor = (status: string) => {
   }
   return colors[status] || 'text-gray-700'
 }
+
+const weatherRiskPillClass = computed(() => {
+  const risk = weather.value?.risk_level
+  if (risk === 'good') return 'info-pill info-pill--risk-good'
+  if (risk === 'caution') return 'info-pill info-pill--risk-caution'
+  if (risk === 'risky') return 'info-pill info-pill--risk-risky'
+  return 'soft-badge soft-badge--neutral'
+})
 
 const clearPolling = () => {
   if (pollingHandle) {
@@ -205,8 +248,20 @@ const loadBooking = async () => {
   }
 
   await refreshPaymentStatus(true)
+  void loadBookingWeather(bookingId)
   if (shouldPoll()) {
     await startPolling()
+  }
+}
+
+const loadBookingWeather = async (bookingId: string) => {
+  weatherLoading.value = true
+  try {
+    weather.value = await apiService.getBookingWeather(bookingId)
+  } catch {
+    weather.value = null
+  } finally {
+    weatherLoading.value = false
   }
 }
 
@@ -276,7 +331,7 @@ onUnmounted(() => {
 <template>
   <div class="page-shell w-full min-h-screen">
     <div class="layout-shell-wide page-block-tight">
-      <button @click="router.back()" class="soft-button-secondary px-5 py-3 mb-6">
+      <button @click="router.back()" class="soft-button-secondary px-4 py-2.5 mb-5 text-sm">
         ← Back to Bookings
       </button>
 
@@ -286,95 +341,89 @@ onUnmounted(() => {
       </div>
 
       <div v-else-if="booking" class="space-y-6">
-        <section class="page-header rounded-[2rem] overflow-hidden text-white relative">
+        <section class="page-header rounded-[1.5rem] overflow-hidden text-white relative">
           <div class="absolute inset-0 hero-grid opacity-25"></div>
           <div class="relative z-10 p-6 sm:p-8 lg:p-10">
             <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
               <div>
                 <span class="soft-kicker mb-4">Booking confirmation</span>
-                <h1 class="text-[clamp(2rem,4vw,3.2rem)] font-semibold leading-[1.02] tracking-[-0.04em] mb-3">Your trail reservation</h1>
-                <p class="text-white/80 text-base sm:text-lg mb-0">This page reflects live backend booking and payment status.</p>
-              </div>
-              <div class="glass-panel rounded-[1.5rem] px-6 py-5 text-left min-w-[18rem]">
-                <div class="text-xs uppercase tracking-[0.22em] text-white/60 mb-2">Confirmation code</div>
-                <div class="text-3xl font-semibold text-white mb-3">{{ booking.confirmation_code }}</div>
-                <div :class="['inline-flex px-3 py-1.5 rounded-full font-bold text-sm border backdrop-blur-sm', getStatusColor(booking.status)]">
-                  {{ booking.status }}
+                <h1 class="text-[clamp(1.9rem,4vw,2.8rem)] font-semibold leading-[1.04] tracking-[-0.03em] mb-3">Your trail reservation</h1>
+                <p class="text-white/80 text-base mb-0">Status updates here are synced from booking and MPESA callbacks.</p>
+                <div class="mt-4 flex flex-wrap gap-2">
+                  <span :class="getStatusColor(booking.status)">{{ booking.status }}</span>
+                  <span class="hero-info-pill">💳 {{ booking.payment_status }}</span>
+                  <span class="hero-info-pill">👥 {{ booking.spots_booked }} {{ booking.spots_booked === 1 ? 'spot' : 'spots' }}</span>
                 </div>
+              </div>
+              <div class="glass-panel hero-side-panel rounded-[1.2rem] px-5 py-4 text-left min-w-[17rem]">
+                <div class="text-xs uppercase tracking-[0.14em] text-white/80 mb-2">Confirmation code</div>
+                <div class="text-2xl font-semibold text-white mb-3">{{ booking.confirmation_code }}</div>
+                <p class="text-white/90 text-sm mb-0">{{ booking.trail_title || booking.trail_id }}</p>
               </div>
             </div>
           </div>
         </section>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section class="surface-card-lg">
-            <h2 class="text-2xl font-semibold text-slate-900 mb-5">Booking Information</h2>
-            <div class="space-y-4">
-              <div class="surface-muted rounded-[1.25rem] p-4 flex justify-between items-center gap-4">
-                <span class="text-sm text-slate-600 font-medium">Booking Date</span>
-                <span class="text-sm font-bold text-slate-900">{{ formatDate(booking.booking_date) }}</span>
+        <section class="surface-card-lg">
+          <p class="app-section-kicker mb-2">Reservation snapshot</p>
+          <h2 class="text-2xl brand-text-strong font-display font-semibold mb-4">All key details in one story</h2>
+          <div class="space-y-3">
+            <article class="surface-muted rounded-[1rem] p-4 flex items-start gap-3">
+              <span class="soft-icon-tile soft-icon-tile--sage !w-9 !h-9 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </span>
+              <div>
+                <p class="text-sm font-semibold tone-heading mb-1">Trail day</p>
+                <p class="text-sm tone-body mb-0">{{ formatDate(booking.trail_scheduled_date || booking.booking_date) }}</p>
               </div>
-              <div class="surface-muted rounded-[1.25rem] p-4 flex justify-between items-center gap-4">
-                <span class="text-sm text-slate-600 font-medium">Trail</span>
-                <span class="text-sm font-bold text-slate-900">{{ booking.trail_title || booking.trail_id }}</span>
+            </article>
+            <article class="surface-muted rounded-[1rem] p-4 flex items-start gap-3">
+              <span class="soft-icon-tile soft-icon-tile--mist !w-9 !h-9 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
+                </svg>
+              </span>
+              <div>
+                <p class="text-sm font-semibold tone-heading mb-1">Trail and spots</p>
+                <p class="text-sm tone-body mb-0">{{ booking.trail_title || booking.trail_id }} · {{ booking.spots_booked }} {{ booking.spots_booked === 1 ? 'spot' : 'spots' }}</p>
               </div>
-              <div class="surface-muted rounded-[1.25rem] p-4 flex justify-between items-center gap-4">
-                <span class="text-sm text-slate-600 font-medium">Spots Booked</span>
-                <span class="text-sm font-bold text-slate-900">{{ booking.spots_booked }}</span>
+            </article>
+            <article class="surface-muted rounded-[1rem] p-4 flex items-start gap-3">
+              <span class="soft-icon-tile soft-icon-tile--brass !w-9 !h-9 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8c-1.105 0-2 .67-2 1.5S10.895 11 12 11s2 .67 2 1.5-0.895 1.5-2 1.5m0-6v6m0 0v2m0-10V4" />
+                </svg>
+              </span>
+              <div>
+                <p class="text-sm font-semibold tone-heading mb-1">Amount and status</p>
+                <p class="text-sm tone-body mb-0">{{ formatPrice(booking.total_price) }} · {{ booking.payment_status }}</p>
               </div>
-              <div class="surface-muted rounded-[1.25rem] p-4 flex justify-between items-center gap-4">
-                <span class="text-sm text-slate-600 font-medium">Status</span>
-                <span :class="['px-3 py-1 rounded-full font-bold text-xs border', getStatusColor(booking.status)]">
-                  {{ booking.status }}
-                </span>
-              </div>
-            </div>
-          </section>
-
-          <section class="surface-card-lg">
-            <h2 class="text-2xl font-semibold text-slate-900 mb-5">Payment Information</h2>
-            <div class="space-y-4">
-              <div class="surface-muted rounded-[1.25rem] p-4 flex justify-between items-center gap-4">
-                <span class="text-sm text-slate-600 font-medium">Payment Status</span>
-                <span :class="['font-bold text-sm', getPaymentStatusColor(booking.payment_status)]">
-                  {{ booking.payment_status }}
-                </span>
-              </div>
-              <div class="surface-muted rounded-[1.25rem] p-4 flex justify-between items-center gap-4">
-                <span class="text-sm text-slate-600 font-medium">Total Amount</span>
-                <span class="text-2xl font-semibold brand-text">{{ formatPrice(booking.total_price) }}</span>
-              </div>
-              <div v-if="booking.mpesa_receipt_number" class="surface-muted rounded-[1.25rem] p-4 flex justify-between items-center gap-4">
-                <span class="text-sm text-slate-600 font-medium">Receipt</span>
-                <span class="text-sm font-semibold text-slate-900">{{ booking.mpesa_receipt_number }}</span>
-              </div>
-              <div v-if="latestAttempt" class="surface-muted rounded-[1.25rem] p-4">
-                <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-2">Current attempt</p>
-                <p class="text-sm font-medium text-slate-800 mb-1">Attempt #{{ latestAttempt.attempt_no }}</p>
-                <p v-if="latestAttempt.checkout_request_id" class="text-xs text-slate-600 mb-0 break-all">Checkout ID: {{ latestAttempt.checkout_request_id }}</p>
-              </div>
-            </div>
-          </section>
-        </div>
+            </article>
+          </div>
+        </section>
 
         <section class="surface-card-lg space-y-5">
-          <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            <div>
-              <h2 class="text-2xl font-semibold text-slate-900">MPESA Payment</h2>
-              <p class="text-sm text-slate-600 mb-0">Initiate or retry payment from this booking only. Status is synced from backend callbacks.</p>
-            </div>
-            <div class="surface-muted rounded-[1.1rem] px-4 py-3 min-w-[14rem]">
-              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">Progress</p>
-              <p class="text-base font-semibold text-slate-900 mb-0">{{ paymentProgress.title }}</p>
-            </div>
+          <div>
+            <p class="app-section-kicker mb-2">Payment journey</p>
+            <h2 class="text-2xl brand-text-strong font-display font-semibold mb-2">MPESA progress</h2>
+            <p class="text-sm text-slate-600 mb-0">Initiate or retry payment from this booking only. Status is synced from backend callbacks.</p>
           </div>
 
-          <div class="surface-muted rounded-[1.5rem] p-5 border border-slate-200/80">
+          <div class="surface-muted rounded-[1rem] p-4 border border-slate-200/80">
             <p class="text-sm text-slate-700 mb-3">{{ paymentProgress.detail }}</p>
             <div class="w-full h-2 rounded-full bg-slate-200/80">
               <div class="h-2 rounded-full bg-[linear-gradient(135deg,var(--color-primary),#7a998d)] transition-all duration-500" :style="{ width: `${paymentProgress.progress}%` }"></div>
             </div>
             <p class="text-xs text-slate-500 mt-2 mb-0">{{ paymentProgress.progress }}% complete</p>
+          </div>
+
+          <div class="space-y-2">
+            <article v-for="event in paymentTimeline" :key="event.label" class="surface-muted rounded-[0.9rem] p-3">
+              <p class="text-xs uppercase tracking-[0.12em] text-slate-500 mb-1">{{ event.label }}</p>
+              <p class="text-sm font-semibold text-slate-900 mb-0 break-all">{{ event.detail }}</p>
+            </article>
           </div>
 
           <div v-if="canInitiatePayment" class="grid grid-cols-1 lg:grid-cols-[1fr_auto_auto] gap-3">
@@ -433,10 +482,46 @@ onUnmounted(() => {
             </button>
           </div>
         </section>
+
+        <section v-if="hasSelectedActivities" class="surface-card-lg">
+          <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+            <h2 class="text-xl font-semibold text-slate-900 mb-0">Selected add-ons</h2>
+            <span class="soft-badge soft-badge--neutral">{{ selectedActivities.length }} item(s)</span>
+          </div>
+          <div class="space-y-2.5">
+            <article v-for="activity in selectedActivities" :key="activity.activity_id" class="surface-muted rounded-[1rem] p-3.5 flex items-center justify-between gap-3">
+              <div>
+                <p class="text-sm font-semibold text-slate-900 mb-1">{{ activity.activity_name }}</p>
+                <p class="text-xs text-slate-600 mb-0">Qty {{ activity.quantity }}</p>
+              </div>
+              <p class="text-sm font-semibold brand-text mb-0">{{ formatPrice(activity.total_price || (activity.price * activity.quantity)) }}</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="surface-card-lg">
+          <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+            <h2 class="text-xl font-semibold text-slate-900 mb-0">Trail Day Weather</h2>
+            <span v-if="weather?.available" :class="weatherRiskPillClass">
+              {{ weather.risk_label || 'Weather' }}
+            </span>
+          </div>
+          <p v-if="weatherLoading" class="text-sm tone-body mb-0">Checking weather forecast...</p>
+          <p v-else-if="!weather?.available" class="text-sm tone-body mb-0">
+            {{ weather?.message || 'Weather forecast is unavailable right now.' }}
+          </p>
+          <div v-else class="flex flex-wrap items-center gap-2 text-sm">
+            <span class="soft-badge soft-badge--neutral">{{ weather.summary }}</span>
+            <span class="soft-badge soft-badge--neutral">{{ weather.temperature_min_c }}° - {{ weather.temperature_max_c }}°C</span>
+            <span class="soft-badge soft-badge--neutral">Rain {{ weather.precipitation_probability_max }}%</span>
+            <span class="soft-badge soft-badge--neutral">Wind {{ weather.wind_gusts_10m_max_kmh }} km/h gusts</span>
+            <span class="soft-badge soft-badge--neutral">UV {{ weather.uv_index_max }}</span>
+          </div>
+        </section>
       </div>
 
       <div v-else class="surface-card-lg text-center">
-        <h3 class="text-3xl font-semibold text-slate-900 mb-3">Booking Not Found</h3>
+        <h3 class="text-2xl font-semibold text-slate-900 mb-2">Booking not found</h3>
         <p class="mb-7 text-base text-slate-600">We couldn't find the booking you're looking for.</p>
         <button @click="router.push('/bookings')" class="brand-button px-8 py-4">
           View All Bookings

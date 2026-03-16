@@ -1,23 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Stepup Adventures favicon">
   <defs>
-    <linearGradient id="bg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#365E51" />
-      <stop offset="1" stop-color="#1D312A" />
+    <linearGradient id="bg" x1="6" y1="4" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3A6557" />
+      <stop offset="1" stop-color="#1D332B" />
     </linearGradient>
   </defs>
 
   <rect width="64" height="64" rx="14" fill="url(#bg)" />
-  <circle cx="47" cy="17" r="6.5" fill="#F5CC74" />
+  <circle cx="48" cy="16" r="5" fill="#EBD19D" />
 
-  <path d="M6 46 22 23l9 12 8-13 19 24H6Z" fill="#E6F0EB" />
-  <path d="M14 46 25 31l7 9 5-7 10 13H14Z" fill="#A5BBB0" />
-  <path d="M0 52c9-7 20-10 32-9s23 2 32-2v23H0Z" fill="#2A433A" />
-
-  <path
-    d="M30 64c.1-7.6 2.1-14.2 5.8-19.2 3.5-4.8 8.2-8 14.2-10.3"
-    fill="none"
-    stroke="#E8D5A9"
-    stroke-width="5"
-    stroke-linecap="round"
-  />
+  <path d="M10 45 24 25l8 10 7-12 15 22H10Z" fill="#E7F1EB" />
+  <path d="M15 45 25 32l6 8 5-7 9 12H15Z" fill="#A7BDB2" />
+  <path d="M8 52c7-5 15-7 24-7 10 0 17 2 24 7v12H8Z" fill="#29463B" />
+  <path d="M19 52c3-7 8-12 16-15" fill="none" stroke="#EFD6A9" stroke-width="4" stroke-linecap="round" />
 </svg>

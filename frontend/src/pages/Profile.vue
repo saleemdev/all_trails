@@ -52,13 +52,13 @@ const formatDate = (date: string) => {
 
 const bookingStatusClass = (status: string) => {
   const classes: Record<string, string> = {
-    Confirmed: 'bg-green-100 text-green-800 border-green-200',
-    Pending: 'bg-amber-100 text-amber-800 border-amber-200',
-    Completed: 'bg-sky-100 text-sky-800 border-sky-200',
-    Cancelled: 'bg-red-100 text-red-800 border-red-200',
+    Confirmed: 'info-pill info-pill--status-confirmed',
+    Pending: 'info-pill info-pill--status-pending',
+    Completed: 'info-pill info-pill--status-completed',
+    Cancelled: 'info-pill info-pill--status-cancelled',
   }
 
-  return classes[status] || 'bg-slate-100 text-slate-700 border-slate-200'
+  return classes[status] || 'soft-badge soft-badge--neutral'
 }
 </script>
 
@@ -98,27 +98,16 @@ const bookingStatusClass = (status: string) => {
         <p class="text-sm text-slate-600 mb-0">Loading account metrics...</p>
       </div>
 
-      <div v-else-if="userStats" class="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article class="surface-card text-center">
-          <p class="app-section-kicker">Bookings</p>
-          <p class="mt-3 text-3xl font-semibold text-slate-950">{{ userStats.total_bookings || 0 }}</p>
-          <p class="mt-2 mb-0 text-sm text-slate-500">Total reservations</p>
-        </article>
-        <article class="surface-card text-center">
-          <p class="app-section-kicker">Confirmed</p>
-          <p class="mt-3 text-3xl font-semibold text-slate-950">{{ userStats.confirmed_bookings || 0 }}</p>
-          <p class="mt-2 mb-0 text-sm text-slate-500">Upcoming and active</p>
-        </article>
-        <article class="surface-card text-center">
-          <p class="app-section-kicker">Completed</p>
-          <p class="mt-3 text-3xl font-semibold text-slate-950">{{ userStats.completed_bookings || 0 }}</p>
-          <p class="mt-2 mb-0 text-sm text-slate-500">Finished trips</p>
-        </article>
-        <article class="surface-card text-center">
-          <p class="app-section-kicker">Spend</p>
-          <p class="mt-3 text-2xl font-semibold text-slate-950 sm:text-3xl">{{ formatCurrency(userStats.total_spent || 0) }}</p>
-          <p class="mt-2 mb-0 text-sm text-slate-500">Lifetime value</p>
-        </article>
+      <div v-else-if="userStats" class="mb-8">
+        <div class="glass-panel-strong rounded-[1.25rem] p-4 sm:p-5">
+          <p class="app-section-kicker mb-3">Quick snapshot</p>
+          <div class="flex flex-wrap gap-2.5">
+            <span class="hero-info-pill">Bookings {{ userStats.total_bookings || 0 }}</span>
+            <span class="hero-info-pill">Confirmed {{ userStats.confirmed_bookings || 0 }}</span>
+            <span class="hero-info-pill">Completed {{ userStats.completed_bookings || 0 }}</span>
+            <span class="hero-info-pill">Spend {{ formatCurrency(userStats.total_spent || 0) }}</span>
+          </div>
+        </div>
       </div>
 
       <div class="glass-panel-strong mb-8 rounded-[1.5rem] p-2">
@@ -208,7 +197,7 @@ const bookingStatusClass = (status: string) => {
                     {{ booking.spots_booked }} {{ booking.spots_booked === 1 ? 'spot' : 'spots' }}
                   </p>
                 </div>
-                <span :class="['inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold', bookingStatusClass(booking.status)]">
+                <span :class="bookingStatusClass(booking.status)">
                   {{ booking.status }}
                 </span>
               </div>
@@ -256,7 +245,7 @@ const bookingStatusClass = (status: string) => {
               <div>
                 <div class="flex flex-wrap items-center gap-3">
                   <p class="text-base font-semibold text-slate-950">{{ booking.trail_title || 'Trail' }}</p>
-                  <span :class="['inline-flex rounded-full border px-3 py-1 text-xs font-semibold', bookingStatusClass(booking.status)]">
+                  <span :class="bookingStatusClass(booking.status)">
                     {{ booking.status }}
                   </span>
                 </div>

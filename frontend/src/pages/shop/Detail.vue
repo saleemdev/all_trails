@@ -71,10 +71,10 @@ watch(
     </div>
 
     <template v-else-if="item">
-      <div class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+      <div class="grid gap-7 lg:grid-cols-[1.02fr_0.98fr]">
         <div class="space-y-5">
           <GlassCard :padded="false" class="overflow-hidden">
-            <img :src="selectedImage || item.image_url" :alt="item.item_name" class="h-[420px] w-full object-cover sm:h-[560px]" />
+            <img :src="selectedImage || item.image_url" :alt="item.item_name" class="h-[320px] w-full object-cover sm:h-[460px]" />
           </GlassCard>
 
           <div class="grid gap-3 sm:grid-cols-3">
@@ -92,25 +92,25 @@ watch(
 
         <div class="space-y-5">
           <GlassCard tone="strong">
-            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{{ item.category_name }}</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{{ item.category_name }}</p>
             <div class="mt-3 flex flex-wrap gap-2">
               <span
                 v-for="badge in item.badges"
                 :key="badge"
-                class="rounded-full bg-slate-950 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white"
+                class="soft-badge soft-badge--neutral"
               >
                 {{ badge }}
               </span>
             </div>
 
-            <h1 class="mt-4 text-[clamp(2rem,4vw,3.2rem)] font-semibold leading-[1.02] tracking-[-0.04em] text-slate-950">{{ item.item_name }}</h1>
-            <p class="mt-5 text-base leading-8 text-slate-600">{{ item.description }}</p>
+            <h1 class="mt-4 text-[clamp(1.85rem,4vw,2.7rem)] font-semibold leading-[1.05] tracking-[-0.03em] text-slate-950">{{ item.item_name }}</h1>
+            <p class="mt-4 text-sm leading-7 text-slate-600">{{ item.description }}</p>
 
-            <div class="mt-6 flex flex-wrap items-end gap-4">
+            <div class="mt-6 flex flex-wrap items-end gap-3">
               <div>
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Current price</p>
                 <div class="mt-1 flex items-center gap-3">
-                  <span class="text-3xl font-semibold text-slate-950 sm:text-4xl">
+                  <span class="text-2xl font-semibold text-slate-950 sm:text-3xl">
                     KES {{ (item.discount_price ?? item.selling_price).toLocaleString() }}
                   </span>
                   <span v-if="item.discount_price" class="text-base text-slate-400 line-through">
@@ -119,13 +119,13 @@ watch(
                 </div>
               </div>
 
-              <div class="rounded-[1.1rem] bg-[rgba(49,83,72,0.08)] px-4 py-3 text-sm text-[color:var(--color-primary-dark)]">
+              <div class="rounded-[0.95rem] bg-[rgba(49,83,72,0.08)] px-3.5 py-2.5 text-xs text-[color:var(--color-primary-dark)]">
                 <p class="font-semibold">{{ item.average_rating.toFixed(1) }} / 5</p>
                 <p>{{ item.review_count }} verified reviews</p>
               </div>
             </div>
 
-            <div class="mt-8 grid gap-4 sm:grid-cols-2">
+            <div class="mt-7 grid gap-3.5 sm:grid-cols-2">
               <label class="flex flex-col gap-2 text-sm">
                 <span class="font-semibold text-slate-800">Color</span>
                 <select v-model="selectedColor" class="soft-input rounded-[1.05rem] bg-white/85">
@@ -145,15 +145,15 @@ watch(
               </label>
             </div>
 
-            <div class="mt-4 flex flex-wrap items-center gap-4">
-              <label class="flex items-center gap-3 rounded-full bg-white/80 px-4 py-2.5">
+            <div class="mt-4 flex flex-wrap items-center gap-3">
+              <label class="surface-muted flex items-center gap-2.5 rounded-full px-3.5 py-2">
                 <span class="text-sm font-semibold text-slate-800">Qty</span>
                 <input v-model.number="quantity" type="number" min="1" class="w-16 bg-transparent p-0 text-center text-base" />
               </label>
               <p class="text-sm text-slate-500">{{ item.inventory_qty }} units ready to dispatch</p>
             </div>
 
-            <div class="mt-8 flex flex-wrap gap-3">
+            <div class="mt-7 flex flex-wrap gap-3">
               <GlassButton @click="addCurrentItemToCart">Add to cart</GlassButton>
               <GlassButton variant="secondary" @click="router.push('/shop')">Keep browsing</GlassButton>
             </div>
@@ -185,7 +185,7 @@ watch(
         </div>
       </div>
 
-      <section class="mt-14 grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+      <section class="mt-12 grid gap-7 lg:grid-cols-[0.95fr_1.05fr]">
         <GlassCard>
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Customer proof</p>
           <h2 class="app-section-title">Recent reviews</h2>
@@ -222,7 +222,7 @@ watch(
             </div>
           </div>
 
-          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
             <GlassProductCard
               v-for="related in relatedItems"
               :key="related.item_code"

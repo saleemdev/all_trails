@@ -76,7 +76,7 @@ const formatTrailDate = (value: string) => {
 
 <template>
   <div
-    class="group glass-panel-strong soft-card-hover h-full overflow-hidden rounded-[1.05rem] border border-white/60 focus-within:ring-2 focus-within:ring-white/70 focus-within:ring-offset-2"
+    class="group glass-panel-strong soft-card-hover h-full overflow-hidden rounded-[0.95rem] border border-white/55 focus-within:ring-2 focus-within:ring-white/70 focus-within:ring-offset-2"
     @click="$emit('click')"
     role="article"
     :aria-label="`Trail: ${props.trail.title} in ${props.trail.location}`"
@@ -84,7 +84,7 @@ const formatTrailDate = (value: string) => {
     @keydown.enter="$emit('click')"
     @keydown.space.prevent="$emit('click')"
   >
-    <div class="relative h-32 overflow-hidden bg-slate-900 sm:h-[8.7rem]">
+    <div class="relative h-28 overflow-hidden bg-slate-900 sm:h-32">
       <div class="absolute inset-0 hero-overlay"></div>
       <div class="absolute inset-0 hero-grid opacity-35"></div>
 
@@ -123,7 +123,7 @@ const formatTrailDate = (value: string) => {
       </div>
     </div>
 
-    <div class="flex h-full flex-col p-3">
+    <div class="flex h-full flex-col p-2.5 sm:p-3">
       <h3 class="trail-card-title text-[14px] font-semibold leading-5 text-slate-900 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
         {{ props.trail.title }}
       </h3>
@@ -138,41 +138,11 @@ const formatTrailDate = (value: string) => {
         <span v-if="formatTrailDate(props.trail.scheduled_date)" class="shrink-0 text-[10px]">{{ formatTrailDate(props.trail.scheduled_date) }}</span>
       </div>
 
-      <ul class="mt-2 grid grid-cols-3 gap-1">
-        <li class="trail-metric-chip">
-          <div class="trail-metric-value">
-            <span class="trail-metric-icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7" />
-              </svg>
-            </span>
-            <span>{{ props.trail.distance_km }}km</span>
-          </div>
-          <p class="trail-metric-label">Distance</p>
-        </li>
-        <li class="trail-metric-chip">
-          <div class="trail-metric-value">
-            <span class="trail-metric-icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </span>
-            <span>{{ props.trail.duration_hours }}h</span>
-          </div>
-          <p class="trail-metric-label">Duration</p>
-        </li>
-        <li class="trail-metric-chip">
-          <div class="trail-metric-value">
-            <span class="trail-metric-icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8" />
-              </svg>
-            </span>
-            <span>{{ props.trail.elevation_gain_m }}m</span>
-          </div>
-          <p class="trail-metric-label">Elevation</p>
-        </li>
-      </ul>
+      <div class="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+        <span class="soft-badge soft-badge--neutral !px-2 !py-1">Distance {{ props.trail.distance_km }} km</span>
+        <span class="soft-badge soft-badge--neutral !px-2 !py-1">Duration {{ props.trail.duration_hours }}h</span>
+        <span class="soft-badge soft-badge--neutral !px-2 !py-1">Elevation {{ props.trail.elevation_gain_m }}m</span>
+      </div>
 
       <div class="mt-2.5 flex items-end justify-between gap-2">
         <div>
@@ -181,7 +151,7 @@ const formatTrailDate = (value: string) => {
         </div>
 
         <button
-          class="inline-flex items-center gap-1 rounded-[0.68rem] bg-[color:var(--color-primary)] px-2.5 py-1.5 text-[11px] font-medium text-white transition-all hover:brightness-[1.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary-ring)]"
+          class="inline-flex items-center gap-1 rounded-[0.62rem] bg-[color:var(--color-primary)] px-2.5 py-1.5 text-[10.5px] font-medium text-white transition-all hover:brightness-[1.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary-ring)]"
           :aria-label="`View details for ${props.trail.title}`"
           @click.stop="$emit('click')"
         >

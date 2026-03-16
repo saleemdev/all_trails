@@ -36,22 +36,12 @@ const formatPrice = (price: number) => {
 
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    Confirmed: 'bg-green-100 text-green-800 border-green-300',
-    Pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    Cancelled: 'bg-red-100 text-red-800 border-red-300',
-    Completed: 'bg-blue-100 text-blue-800 border-blue-300',
+    Confirmed: 'info-pill info-pill--status-confirmed',
+    Pending: 'info-pill info-pill--status-pending',
+    Cancelled: 'info-pill info-pill--status-cancelled',
+    Completed: 'info-pill info-pill--status-completed',
   }
-  return colors[status] || 'bg-gray-100 text-gray-800 border-gray-300'
-}
-
-const getStatusIcon = (status: string) => {
-  const icons: Record<string, string> = {
-    Confirmed: '✓',
-    Pending: '⏳',
-    Cancelled: '✗',
-    Completed: '✓',
-  }
-  return icons[status] || '•'
+  return colors[status] || 'soft-badge soft-badge--neutral'
 }
 </script>
 
@@ -83,14 +73,14 @@ const getStatusIcon = (status: string) => {
               </svg>
             </div>
             <div>
-              <h2 class="text-2xl font-semibold text-slate-900 sm:text-3xl">Upcoming adventures</h2>
+              <h2 class="text-xl font-semibold text-slate-900 sm:text-2xl">Upcoming adventures</h2>
               <p class="text-slate-600 mb-0">Your scheduled trail bookings</p>
             </div>
           </div>
 
           <div v-if="upcomingBookings.length === 0" class="surface-card-lg text-center">
-            <div class="mb-5 text-6xl">📅</div>
-            <h3 class="text-3xl font-semibold text-slate-900 mb-3">No Upcoming Bookings</h3>
+            <div class="mb-4 text-5xl">📅</div>
+            <h3 class="text-2xl font-semibold text-slate-900 mb-2">No upcoming bookings</h3>
             <p class="mx-auto mb-7 max-w-md text-base text-slate-600">Ready for your next adventure?</p>
             <RouterLink to="/trails" class="brand-button px-8 py-4">
               Browse Trails
@@ -102,9 +92,9 @@ const getStatusIcon = (status: string) => {
               v-for="booking in upcomingBookings"
               :key="booking.id"
               @click="viewBookingDetail(booking.id)"
-              class="glass-panel-strong rounded-[1.75rem] overflow-hidden cursor-pointer soft-card-hover"
+              class="glass-panel-strong rounded-[1.35rem] overflow-hidden cursor-pointer soft-card-hover"
             >
-              <div class="h-32 relative bg-slate-900">
+              <div class="h-28 relative bg-slate-900">
                 <div class="absolute inset-0 hero-overlay"></div>
                 <div class="absolute inset-0 flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -112,14 +102,12 @@ const getStatusIcon = (status: string) => {
                   </svg>
                 </div>
                 <div class="absolute top-4 right-4">
-                  <div :class="['px-3 py-1.5 rounded-full font-bold text-sm shadow-lg border backdrop-blur-sm', getStatusColor(booking.status)]">
-                    {{ getStatusIcon(booking.status) }} {{ booking.status }}
-                  </div>
+                  <span :class="getStatusColor(booking.status)">{{ booking.status }}</span>
                 </div>
               </div>
 
-              <div class="p-6">
-              <h3 class="text-xl font-semibold text-slate-900 mb-4">Trail Booking</h3>
+              <div class="p-5">
+                <h3 class="text-lg font-semibold text-slate-900 mb-4">Trail booking</h3>
 
                 <div class="space-y-3">
                   <div class="flex justify-between items-center">
@@ -134,7 +122,7 @@ const getStatusIcon = (status: string) => {
 
                   <div class="flex justify-between items-center">
                     <span class="text-sm text-slate-600 font-medium">Total Price</span>
-                    <span class="text-lg font-semibold brand-text">{{ formatPrice(booking.total_price) }}</span>
+                    <span class="text-base font-semibold brand-text">{{ formatPrice(booking.total_price) }}</span>
                   </div>
 
                   <div class="pt-3 border-t border-slate-200/80">
@@ -159,13 +147,13 @@ const getStatusIcon = (status: string) => {
               </svg>
             </div>
             <div>
-              <h2 class="text-2xl font-semibold text-slate-900 sm:text-3xl">Past adventures</h2>
+              <h2 class="text-xl font-semibold text-slate-900 sm:text-2xl">Past adventures</h2>
               <p class="text-slate-600 mb-0">Your completed trail experiences</p>
             </div>
           </div>
 
-          <div v-if="pastBookings.length === 0" class="glass-panel rounded-[1.75rem] p-12 text-center">
-            <div class="text-6xl mb-4">🏔️</div>
+          <div v-if="pastBookings.length === 0" class="glass-panel rounded-[1.35rem] p-10 text-center">
+            <div class="text-5xl mb-4">🏔️</div>
             <p class="text-lg text-slate-600 mb-0">No past bookings yet.</p>
           </div>
 
@@ -174,7 +162,7 @@ const getStatusIcon = (status: string) => {
               v-for="booking in pastBookings"
               :key="booking.id"
               @click="viewBookingDetail(booking.id)"
-              class="glass-panel rounded-[1.5rem] overflow-hidden cursor-pointer soft-card-hover"
+              class="glass-panel rounded-[1.25rem] overflow-hidden cursor-pointer soft-card-hover"
             >
               <div class="h-24 bg-gradient-to-br from-slate-400 to-slate-500 relative">
                 <div class="absolute inset-0 flex items-center justify-center">
@@ -183,7 +171,7 @@ const getStatusIcon = (status: string) => {
                   </svg>
                 </div>
                 <div class="absolute top-3 right-3">
-                  <div :class="['px-2 py-1 rounded-full font-bold text-xs shadow-md border backdrop-blur-sm', getStatusColor(booking.status)]">
+                  <div :class="getStatusColor(booking.status)">
                     {{ booking.status }}
                   </div>
                 </div>

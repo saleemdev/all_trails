@@ -14,6 +14,7 @@ import type {
   Trail,
   TrailBooking,
   TrailFilters,
+  TrailWeather,
   User,
 } from '../types/index'
 
@@ -225,6 +226,46 @@ class ApiService {
     }
   }
 
+  private normalizeTrailWeather(raw: any): TrailWeather {
+    return {
+      available: Boolean(raw?.available),
+      message: raw?.message || undefined,
+      date: raw?.date || '',
+      summary: raw?.summary || undefined,
+      weather_code: raw?.weather_code === undefined || raw?.weather_code === null ? undefined : Number(raw.weather_code),
+      risk_level: raw?.risk_level || undefined,
+      risk_label: raw?.risk_label || undefined,
+      temperature_max_c:
+        raw?.temperature_max_c === undefined || raw?.temperature_max_c === null
+          ? undefined
+          : Number(raw.temperature_max_c),
+      temperature_min_c:
+        raw?.temperature_min_c === undefined || raw?.temperature_min_c === null
+          ? undefined
+          : Number(raw.temperature_min_c),
+      precipitation_probability_max:
+        raw?.precipitation_probability_max === undefined || raw?.precipitation_probability_max === null
+          ? undefined
+          : Number(raw.precipitation_probability_max),
+      wind_speed_10m_max_kmh:
+        raw?.wind_speed_10m_max_kmh === undefined || raw?.wind_speed_10m_max_kmh === null
+          ? undefined
+          : Number(raw.wind_speed_10m_max_kmh),
+      wind_gusts_10m_max_kmh:
+        raw?.wind_gusts_10m_max_kmh === undefined || raw?.wind_gusts_10m_max_kmh === null
+          ? undefined
+          : Number(raw.wind_gusts_10m_max_kmh),
+      uv_index_max:
+        raw?.uv_index_max === undefined || raw?.uv_index_max === null ? undefined : Number(raw.uv_index_max),
+      sunrise: raw?.sunrise || undefined,
+      sunset: raw?.sunset || undefined,
+      coordinates:
+        raw?.coordinates?.lat !== undefined && raw?.coordinates?.lng !== undefined
+          ? { lat: Number(raw.coordinates.lat), lng: Number(raw.coordinates.lng) }
+          : undefined,
+    }
+  }
+
   async registerMember(payload: RegisterMemberPayload): Promise<RegisterMemberResponse> {
     const response = await this.axiosInstance.post('/all_trails.api.register_member', payload)
     return this.extractData<RegisterMemberResponse>(response)
@@ -253,6 +294,13 @@ class ApiService {
       params: { trail_id: trailId },
     })
     return this.normalizeTrail(this.extractData<any>(response))
+  }
+
+  async getTrailWeather(trailId: string): Promise<TrailWeather> {
+    const response = await this.axiosInstance.get('/all_trails.api.get_trail_weather', {
+      params: { trail_id: trailId },
+    })
+    return this.normalizeTrailWeather(this.extractData<any>(response))
   }
 
   async createBooking(
@@ -293,6 +341,13 @@ class ApiService {
     })
 
     return this.normalizeBooking(this.extractData<any>(response))
+  }
+
+  async getBookingWeather(bookingId: string): Promise<TrailWeather> {
+    const response = await this.axiosInstance.get('/all_trails.api.get_booking_weather', {
+      params: { booking_id: bookingId },
+    })
+    return this.normalizeTrailWeather(this.extractData<any>(response))
   }
 
   async cancelBooking(bookingId: string, reason: string): Promise<{ success: boolean; booking?: TrailBooking }> {

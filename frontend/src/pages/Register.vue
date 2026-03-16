@@ -70,7 +70,7 @@ const submitRegistration = async () => {
         <div class="mb-4 border-b border-[color:var(--color-border-soft)] pb-3">
           <p class="tone-kicker text-[10px]">Join the community</p>
           <h1 class="tone-heading mt-1.5 text-[clamp(1.4rem,3.3vw,1.9rem)] font-medium leading-tight tracking-[-0.02em]">Create your trail account</h1>
-          <p class="tone-body mt-1.5 mb-0 text-[13px] leading-5">This route uses `register_member` and sets up your `Trail Member` access.</p>
+          <p class="tone-body mt-1.5 mb-0 text-[13px] leading-5">Create your profile and start booking trails in minutes.</p>
         </div>
 
         <form class="space-y-3.5" @submit.prevent="submitRegistration">
@@ -119,14 +119,10 @@ const submitRegistration = async () => {
           </button>
         </form>
 
-        <div class="mt-4 border-t border-[color:var(--color-border-soft)] pt-3 text-center text-[13px] space-y-1">
+        <div class="mt-4 border-t border-[color:var(--color-border-soft)] pt-3 text-center text-[13px]">
           <p class="tone-body mb-0">
             Already have an account?
             <RouterLink to="/login" class="brand-link">Sign in</RouterLink>
-          </p>
-          <p class="tone-body mb-0">
-            Prefer Frappe signup?
-            <a href="/signup" class="brand-link">Use /signup</a>
           </p>
         </div>
       </div>

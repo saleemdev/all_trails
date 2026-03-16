@@ -16,12 +16,12 @@ const publicPrice = (props.item.discount_price ?? props.item.selling_price).toLo
 
 <template>
   <GlassCard hoverable class="group h-full">
-    <div class="flex h-full flex-col gap-3.5">
+    <div class="flex h-full flex-col gap-3">
       <RouterLink :to="`/shop/${props.item.item_code}`" class="relative overflow-hidden rounded-[1rem]">
         <img
           :src="props.item.image_url"
           :alt="props.item.item_name"
-          class="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] sm:h-44"
+          class="h-32 w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] sm:h-36"
         />
         <div class="absolute left-2.5 top-2.5 flex flex-wrap gap-1.5">
           <span
@@ -34,7 +34,7 @@ const publicPrice = (props.item.discount_price ?? props.item.selling_price).toLo
         </div>
       </RouterLink>
 
-      <div class="flex flex-1 flex-col gap-2.5">
+      <div class="flex flex-1 flex-col gap-2">
         <div class="space-y-1.5">
           <div class="flex items-center justify-between gap-4">
             <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -44,7 +44,7 @@ const publicPrice = (props.item.discount_price ?? props.item.selling_price).toLo
           </div>
 
           <RouterLink :to="`/shop/${props.item.item_code}`" class="block">
-            <h3 class="trail-card-title text-[1rem] font-semibold leading-5 text-slate-950 sm:text-[1.06rem]">
+            <h3 class="trail-card-title text-[0.96rem] font-semibold leading-5 text-slate-950 sm:text-[1rem]">
               {{ props.item.item_name }}
             </h3>
           </RouterLink>
@@ -65,7 +65,7 @@ const publicPrice = (props.item.discount_price ?? props.item.selling_price).toLo
           <div>
             <p class="text-[10px] uppercase tracking-[0.16em] text-slate-500">From</p>
             <div class="flex items-center gap-1.5">
-              <span class="text-[1.05rem] font-semibold text-slate-950">KES {{ publicPrice }}</span>
+            <span class="text-[1rem] font-semibold text-slate-950">KES {{ publicPrice }}</span>
               <span
                 v-if="props.item.discount_price"
                 class="text-[11px] text-slate-400 line-through"

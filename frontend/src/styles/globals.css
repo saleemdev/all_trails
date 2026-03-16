@@ -224,18 +224,18 @@
   --color-info: #6d8ea0;
 
   --color-text-primary: #13201b;
-  --color-text-secondary: #5f6f66;
-  --color-text-tertiary: #75857c;
+  --color-text-secondary: #4f5f56;
+  --color-text-tertiary: #64746c;
   --color-text-light: #ffffff;
 
-  --color-surface: rgba(255, 255, 255, 0.76);
-  --color-surface-strong: rgba(255, 255, 255, 0.88);
-  --color-surface-muted: rgba(241, 245, 242, 0.78);
+  --color-surface: rgba(255, 255, 255, 0.88);
+  --color-surface-strong: rgba(255, 255, 255, 0.94);
+  --color-surface-muted: rgba(241, 245, 242, 0.9);
   --color-surface-control: rgba(255, 255, 255, 0.82);
   --color-surface-control-hover: rgba(255, 255, 255, 0.96);
   --color-surface-overlay: rgba(49, 83, 72, 0.08);
-  --color-border-soft: rgba(72, 101, 90, 0.16);
-  --color-border-strong: rgba(72, 101, 90, 0.26);
+  --color-border-soft: rgba(72, 101, 90, 0.22);
+  --color-border-strong: rgba(72, 101, 90, 0.34);
   --color-primary-ring: rgba(111, 143, 132, 0.24);
   --color-danger-surface: rgba(239, 83, 80, 0.11);
   --color-danger-border: rgba(223, 88, 86, 0.3);
@@ -925,6 +925,104 @@ select:focus {
   border: 1px solid var(--color-border-soft);
 }
 
+.hero-info-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.34rem 0.62rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-medium);
+  color: #f4faf7;
+  background: rgba(19, 31, 27, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(12px);
+}
+
+.hero-side-panel {
+  color: #f4faf7;
+  background: rgba(19, 31, 27, 0.44);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+.info-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  padding: 0.3rem 0.58rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  border: 1px solid transparent;
+}
+
+.info-pill--difficulty-easy {
+  color: #24592d;
+  background: rgba(76, 175, 80, 0.14);
+  border-color: rgba(68, 152, 72, 0.34);
+}
+
+.info-pill--difficulty-moderate {
+  color: #79481e;
+  background: rgba(217, 149, 76, 0.14);
+  border-color: rgba(186, 122, 53, 0.34);
+}
+
+.info-pill--difficulty-hard {
+  color: #7e3d20;
+  background: rgba(230, 126, 66, 0.14);
+  border-color: rgba(194, 95, 40, 0.34);
+}
+
+.info-pill--difficulty-expert {
+  color: #752a3b;
+  background: rgba(209, 87, 106, 0.14);
+  border-color: rgba(176, 67, 86, 0.34);
+}
+
+.info-pill--risk-good {
+  color: #24592d;
+  background: rgba(76, 175, 80, 0.14);
+  border-color: rgba(68, 152, 72, 0.34);
+}
+
+.info-pill--risk-caution {
+  color: #79481e;
+  background: rgba(217, 149, 76, 0.14);
+  border-color: rgba(186, 122, 53, 0.34);
+}
+
+.info-pill--risk-risky {
+  color: #752a3b;
+  background: rgba(209, 87, 106, 0.16);
+  border-color: rgba(176, 67, 86, 0.36);
+}
+
+.info-pill--status-confirmed {
+  color: #24592d;
+  background: rgba(76, 175, 80, 0.14);
+  border-color: rgba(68, 152, 72, 0.34);
+}
+
+.info-pill--status-pending {
+  color: #79481e;
+  background: rgba(217, 149, 76, 0.14);
+  border-color: rgba(186, 122, 53, 0.34);
+}
+
+.info-pill--status-completed {
+  color: #1f5370;
+  background: rgba(109, 142, 160, 0.15);
+  border-color: rgba(88, 121, 139, 0.32);
+}
+
+.info-pill--status-cancelled {
+  color: #752a3b;
+  background: rgba(209, 87, 106, 0.14);
+  border-color: rgba(176, 67, 86, 0.34);
+}
+
 .trail-overlay-chip {
   display: inline-flex;
   align-items: center;
@@ -1115,6 +1213,83 @@ select:focus {
   border-color: var(--color-border-soft) !important;
 }
 
+:root[data-theme-mode='dark'] .text-red-900,
+:root[data-theme-mode='dark'] .text-red-800,
+:root[data-theme-mode='dark'] .text-red-700,
+:root[data-theme-mode='dark'] .text-red-600 {
+  color: #ffd4d2 !important;
+}
+
+:root[data-theme-mode='dark'] .text-blue-900,
+:root[data-theme-mode='dark'] .text-blue-800,
+:root[data-theme-mode='dark'] .text-blue-700,
+:root[data-theme-mode='dark'] .text-blue-600 {
+  color: #d7ecfb !important;
+}
+
+:root[data-theme-mode='dark'] .text-green-900,
+:root[data-theme-mode='dark'] .text-green-800,
+:root[data-theme-mode='dark'] .text-green-700,
+:root[data-theme-mode='dark'] .text-green-600,
+:root[data-theme-mode='dark'] .text-emerald-700,
+:root[data-theme-mode='dark'] .text-emerald-600 {
+  color: #d5f3df !important;
+}
+
+:root[data-theme-mode='dark'] .text-yellow-800,
+:root[data-theme-mode='dark'] .text-yellow-700,
+:root[data-theme-mode='dark'] .text-amber-800,
+:root[data-theme-mode='dark'] .text-amber-700 {
+  color: #ffefc9 !important;
+}
+
+:root[data-theme-mode='dark'] .bg-red-50,
+:root[data-theme-mode='dark'] .bg-red-100 {
+  background-color: rgba(209, 87, 106, 0.24) !important;
+}
+
+:root[data-theme-mode='dark'] .bg-blue-50,
+:root[data-theme-mode='dark'] .bg-blue-100 {
+  background-color: rgba(109, 142, 160, 0.24) !important;
+}
+
+:root[data-theme-mode='dark'] .bg-green-50,
+:root[data-theme-mode='dark'] .bg-green-100,
+:root[data-theme-mode='dark'] .bg-emerald-50,
+:root[data-theme-mode='dark'] .bg-emerald-100 {
+  background-color: rgba(76, 175, 80, 0.24) !important;
+}
+
+:root[data-theme-mode='dark'] .bg-yellow-100,
+:root[data-theme-mode='dark'] .bg-amber-50,
+:root[data-theme-mode='dark'] .bg-amber-100 {
+  background-color: rgba(217, 149, 76, 0.24) !important;
+}
+
+:root[data-theme-mode='dark'] .border-red-200,
+:root[data-theme-mode='dark'] .border-red-300 {
+  border-color: rgba(243, 158, 174, 0.52) !important;
+}
+
+:root[data-theme-mode='dark'] .border-blue-200,
+:root[data-theme-mode='dark'] .border-blue-300 {
+  border-color: rgba(164, 197, 215, 0.5) !important;
+}
+
+:root[data-theme-mode='dark'] .border-green-200,
+:root[data-theme-mode='dark'] .border-green-300,
+:root[data-theme-mode='dark'] .border-emerald-200,
+:root[data-theme-mode='dark'] .border-emerald-300 {
+  border-color: rgba(136, 224, 151, 0.5) !important;
+}
+
+:root[data-theme-mode='dark'] .border-yellow-200,
+:root[data-theme-mode='dark'] .border-yellow-300,
+:root[data-theme-mode='dark'] .border-amber-200,
+:root[data-theme-mode='dark'] .border-amber-300 {
+  border-color: rgba(241, 192, 136, 0.5) !important;
+}
+
 :root[data-theme-mode='dark'] .difficulty-filter--easy {
   --difficulty-bg: rgba(76, 175, 80, 0.24);
   --difficulty-bg-hover: rgba(76, 175, 80, 0.3);
@@ -1211,6 +1386,84 @@ select:focus {
   color: #ecf6f1;
   background: rgba(143, 176, 163, 0.22);
   border-color: rgba(180, 209, 198, 0.42);
+}
+
+:root[data-theme-mode='dark'] .info-pill--difficulty-easy {
+  color: #ecfff1;
+  background: rgba(76, 175, 80, 0.28);
+  border-color: rgba(136, 224, 151, 0.54);
+}
+
+:root[data-theme-mode='dark'] .info-pill--difficulty-moderate {
+  color: #fff4e5;
+  background: rgba(217, 149, 76, 0.28);
+  border-color: rgba(241, 192, 136, 0.52);
+}
+
+:root[data-theme-mode='dark'] .info-pill--difficulty-hard {
+  color: #ffede4;
+  background: rgba(230, 126, 66, 0.3);
+  border-color: rgba(250, 182, 140, 0.54);
+}
+
+:root[data-theme-mode='dark'] .info-pill--difficulty-expert {
+  color: #ffedf2;
+  background: rgba(209, 87, 106, 0.3);
+  border-color: rgba(243, 158, 174, 0.54);
+}
+
+:root[data-theme-mode='dark'] .info-pill--risk-good {
+  color: #ecfff1;
+  background: rgba(76, 175, 80, 0.28);
+  border-color: rgba(136, 224, 151, 0.54);
+}
+
+:root[data-theme-mode='dark'] .info-pill--risk-caution {
+  color: #fff4e5;
+  background: rgba(217, 149, 76, 0.28);
+  border-color: rgba(241, 192, 136, 0.52);
+}
+
+:root[data-theme-mode='dark'] .info-pill--risk-risky {
+  color: #ffedf2;
+  background: rgba(209, 87, 106, 0.3);
+  border-color: rgba(243, 158, 174, 0.54);
+}
+
+:root[data-theme-mode='dark'] .info-pill--status-confirmed {
+  color: #ecfff1;
+  background: rgba(76, 175, 80, 0.28);
+  border-color: rgba(136, 224, 151, 0.54);
+}
+
+:root[data-theme-mode='dark'] .info-pill--status-pending {
+  color: #fff4e5;
+  background: rgba(217, 149, 76, 0.28);
+  border-color: rgba(241, 192, 136, 0.52);
+}
+
+:root[data-theme-mode='dark'] .info-pill--status-completed {
+  color: #e8f6ff;
+  background: rgba(109, 142, 160, 0.3);
+  border-color: rgba(164, 197, 215, 0.52);
+}
+
+:root[data-theme-mode='dark'] .info-pill--status-cancelled {
+  color: #ffedf2;
+  background: rgba(209, 87, 106, 0.3);
+  border-color: rgba(243, 158, 174, 0.54);
+}
+
+:root[data-theme-mode='dark'] .hero-info-pill {
+  color: #ecf6f1;
+  background: rgba(25, 38, 33, 0.74);
+  border-color: rgba(198, 214, 206, 0.42);
+}
+
+:root[data-theme-mode='dark'] .hero-side-panel {
+  color: #ecf6f1;
+  background: rgba(25, 38, 33, 0.72);
+  border-color: rgba(198, 214, 206, 0.42);
 }
 
 .container {
